@@ -1,0 +1,337 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-ide",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2022-01-11T11:06:09Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/91737623",
+        "aerodrome": "public",
+        "aeroway": "aerodrome",
+        "contact:website": "http://www.fairisle.org.uk/egef/index.htm",
+        "iata": "FIE",
+        "icao": "EGEF",
+        "ifr": "no",
+        "name": "Fair Isle Airfield",
+        "name:en": "Fair Isle Airfield",
+        "operator": "National Trust for Scotland",
+        "phone": "+44 1595 760 224",
+        "source": "website",
+        "source:geometry": "Bing",
+        "tower_frequency": "118.025",
+        "variation": "3.5W 2011 0.18E",
+        "wikidata": "Q2029184",
+        "wikipedia": "en:Fair Isle Airport"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.6286167,
+              59.5339046
+            ],
+            [
+              -1.6284991,
+              59.5340527
+            ],
+            [
+              -1.6282175,
+              59.5341373
+            ],
+            [
+              -1.6282196,
+              59.5345155
+            ],
+            [
+              -1.6242555,
+              59.5357745
+            ],
+            [
+              -1.6241818,
+              59.5358313
+            ],
+            [
+              -1.6241387,
+              59.5359261
+            ],
+            [
+              -1.6241695,
+              59.5360272
+            ],
+            [
+              -1.6242965,
+              59.5361373
+            ],
+            [
+              -1.6244011,
+              59.5361859
+            ],
+            [
+              -1.6245058,
+              59.5362139
+            ],
+            [
+              -1.6246453,
+              59.5362242
+            ],
+            [
+              -1.6248229,
+              59.5361845
+            ],
+            [
+              -1.6278579,
+              59.535276
+            ],
+            [
+              -1.6280511,
+              59.5353666
+            ],
+            [
+              -1.628421,
+              59.5352823
+            ],
+            [
+              -1.6286963,
+              59.5351093
+            ],
+            [
+              -1.6291052,
+              59.5349468
+            ],
+            [
+              -1.63011,
+              59.5346124
+            ],
+            [
+              -1.630484,
+              59.5344832
+            ],
+            [
+              -1.6309875,
+              59.5342488
+            ],
+            [
+              -1.6314683,
+              59.5340925
+            ],
+            [
+              -1.6320765,
+              59.5338997
+            ],
+            [
+              -1.6325265,
+              59.5337455
+            ],
+            [
+              -1.6326539,
+              59.5336736
+            ],
+            [
+              -1.6326704,
+              59.5336007
+            ],
+            [
+              -1.6326396,
+              59.5335288
+            ],
+            [
+              -1.6324854,
+              59.5334028
+            ],
+            [
+              -1.6323806,
+              59.5333673
+            ],
+            [
+              -1.6322779,
+              59.5333548
+            ],
+            [
+              -1.6321197,
+              59.5333642
+            ],
+            [
+              -1.6319347,
+              59.53341
+            ],
+            [
+              -1.6304179,
+              59.5338683
+            ],
+            [
+              -1.6296341,
+              59.534087
+            ],
+            [
+              -1.629524,
+              59.5341146
+            ],
+            [
+              -1.6288002,
+              59.5340231
+            ],
+            [
+              -1.6288288,
+              59.5339372
+            ],
+            [
+              -1.6286167,
+              59.5339046
+            ]
+          ]
+        ]
+      },
+      "id": "way/91737623"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/91737648",
+        "aeroway": "terminal",
+        "building": "yes",
+        "source": "Bing"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.6287307,
+              59.5340134
+            ],
+            [
+              -1.6287627,
+              59.5339415
+            ],
+            [
+              -1.6286309,
+              59.5339264
+            ],
+            [
+              -1.6285989,
+              59.5339983
+            ],
+            [
+              -1.6287307,
+              59.5340134
+            ]
+          ]
+        ]
+      },
+      "id": "way/91737648"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/153300177",
+        "aeroway": "apron",
+        "source": "Bing",
+        "surface": "gravel"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -1.6287553,
+              59.5343347
+            ],
+            [
+              -1.6295219,
+              59.5341205
+            ],
+            [
+              -1.6285858,
+              59.5340072
+            ],
+            [
+              -1.6287553,
+              59.5343347
+            ]
+          ]
+        ]
+      },
+      "id": "way/153300177"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/153300178",
+        "aeroway": "runway",
+        "length": "508",
+        "ref": "06/24",
+        "surface": "gravel",
+        "width": "22"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.6321167,
+            59.5336056
+          ],
+          [
+            -1.6249056,
+            59.53585
+          ]
+        ]
+      },
+      "id": "way/153300178"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1660046989",
+        "aeroway": "threshold",
+        "ele": "69.2",
+        "ref": "06",
+        "source": "Bing"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.6321167,
+          59.5336056
+        ]
+      },
+      "id": "node/1660046989"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1660047005",
+        "aeroway": "windsock",
+        "source": "Bing"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.628377,
+          59.5342052
+        ]
+      },
+      "id": "node/1660047005"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1660047013",
+        "aeroway": "threshold",
+        "ele": "67.36",
+        "ref": "24",
+        "source": "Bing"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.6249056,
+          59.53585
+        ]
+      },
+      "id": "node/1660047013"
+    }
+  ]
+}
