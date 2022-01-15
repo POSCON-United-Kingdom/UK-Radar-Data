@@ -1,0 +1,632 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-ide",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2022-01-11T08:55:39Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/115502822",
+        "aeroway": "apron"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.443112,
+              52.2346137
+            ],
+            [
+              -0.442994,
+              52.234272
+            ],
+            [
+              -0.4405234,
+              52.2345232
+            ],
+            [
+              -0.440344,
+              52.2345414
+            ],
+            [
+              -0.4404298,
+              52.2348831
+            ],
+            [
+              -0.4406563,
+              52.2348604
+            ],
+            [
+              -0.443112,
+              52.2346137
+            ]
+          ]
+        ]
+      },
+      "id": "way/115502822"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/2442236",
+        "aeroway": "disused",
+        "disused": "runway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4846315,
+            52.228637
+          ],
+          [
+            -0.4817026,
+            52.2289268
+          ],
+          [
+            -0.4749944,
+            52.2294719
+          ],
+          [
+            -0.4637275,
+            52.2309054
+          ],
+          [
+            -0.4568299,
+            52.2314528
+          ],
+          [
+            -0.4543687,
+            52.2316969
+          ]
+        ]
+      },
+      "id": "way/2442236"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/2442237",
+        "aeroway": "disused",
+        "disused": "runway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4741715,
+            52.225151
+          ],
+          [
+            -0.4744327,
+            52.2265344
+          ],
+          [
+            -0.4749944,
+            52.2294719
+          ],
+          [
+            -0.4750111,
+            52.2320681
+          ],
+          [
+            -0.4754316,
+            52.2344454
+          ],
+          [
+            -0.4757928,
+            52.2365413
+          ]
+        ]
+      },
+      "id": "way/2442237"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/2442239",
+        "aeroway": "disused",
+        "disused": "runway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4637275,
+            52.2309054
+          ],
+          [
+            -0.4744327,
+            52.2265344
+          ]
+        ]
+      },
+      "id": "way/2442239"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/2442242",
+        "aeroway": "disused",
+        "disused": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4798689,
+            52.2243286
+          ],
+          [
+            -0.4838601,
+            52.2280878
+          ],
+          [
+            -0.4846315,
+            52.228637
+          ],
+          [
+            -0.482358,
+            52.2315312
+          ],
+          [
+            -0.4754316,
+            52.2344454
+          ],
+          [
+            -0.4702559,
+            52.2368666
+          ],
+          [
+            -0.4635611,
+            52.2378915
+          ],
+          [
+            -0.4634019,
+            52.2374915
+          ],
+          [
+            -0.463132,
+            52.237182
+          ]
+        ]
+      },
+      "id": "way/2442242"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/2442244",
+        "aeroway": "taxiway",
+        "disused": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4495708,
+            52.2321605
+          ],
+          [
+            -0.4498492,
+            52.2334103
+          ],
+          [
+            -0.450118,
+            52.2336836
+          ],
+          [
+            -0.4506008,
+            52.2337924
+          ],
+          [
+            -0.4551659,
+            52.2337269
+          ]
+        ]
+      },
+      "id": "way/2442244"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8123924",
+        "aeroway": "runway",
+        "name": "26/08",
+        "width": "29m"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4388205,
+            52.2332335
+          ],
+          [
+            -0.439848,
+            52.2331369
+          ],
+          [
+            -0.4430965,
+            52.2328249
+          ],
+          [
+            -0.4436841,
+            52.2327696
+          ],
+          [
+            -0.4476511,
+            52.2323521
+          ],
+          [
+            -0.4495708,
+            52.2321605
+          ],
+          [
+            -0.4542165,
+            52.2317116
+          ],
+          [
+            -0.4543687,
+            52.2316969
+          ]
+        ]
+      },
+      "id": "way/8123924"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8123926",
+        "aeroway": "disused",
+        "disused": "runway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4637275,
+            52.2309054
+          ],
+          [
+            -0.4578942,
+            52.2331695
+          ],
+          [
+            -0.456014,
+            52.2338926
+          ]
+        ]
+      },
+      "id": "way/8123926"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8123927",
+        "aeroway": "disused",
+        "disused": "runway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4798689,
+            52.2243286
+          ],
+          [
+            -0.4744327,
+            52.2265344
+          ]
+        ]
+      },
+      "id": "way/8123927"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/8123929",
+        "aeroway": "disused",
+        "disused": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4578942,
+            52.2331695
+          ],
+          [
+            -0.4570944,
+            52.2323719
+          ],
+          [
+            -0.4568299,
+            52.2314528
+          ]
+        ]
+      },
+      "id": "way/8123929"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/115502811",
+        "aeroway": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.440698,
+            52.234226
+          ],
+          [
+            -0.4406658,
+            52.2344232
+          ],
+          [
+            -0.4407517,
+            52.2347714
+          ],
+          [
+            -0.4408375,
+            52.2349225
+          ],
+          [
+            -0.4411701,
+            52.2350145
+          ],
+          [
+            -0.4415494,
+            52.2349773
+          ],
+          [
+            -0.4421883,
+            52.2349146
+          ],
+          [
+            -0.442831,
+            52.2348515
+          ],
+          [
+            -0.443112,
+            52.234824
+          ],
+          [
+            -0.4434768,
+            52.2347648
+          ],
+          [
+            -0.4437021,
+            52.2346071
+          ],
+          [
+            -0.4437651,
+            52.2344872
+          ],
+          [
+            -0.4437987,
+            52.2344232
+          ],
+          [
+            -0.4437343,
+            52.2342063
+          ],
+          [
+            -0.4435304,
+            52.2340486
+          ],
+          [
+            -0.443104,
+            52.2339833
+          ],
+          [
+            -0.4426031,
+            52.234042
+          ],
+          [
+            -0.4422108,
+            52.2340881
+          ]
+        ]
+      },
+      "id": "way/115502811"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/115502812",
+        "aeroway": "disused",
+        "disused": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4551659,
+            52.2337269
+          ],
+          [
+            -0.4558187,
+            52.2337158
+          ],
+          [
+            -0.456014,
+            52.2338926
+          ]
+        ]
+      },
+      "id": "way/115502812"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/115502815",
+        "aeroway": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.442831,
+            52.2348515
+          ],
+          [
+            -0.4426031,
+            52.234042
+          ]
+        ]
+      },
+      "id": "way/115502815"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/115502816",
+        "aeroway": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4421883,
+            52.2349146
+          ],
+          [
+            -0.4419578,
+            52.2341111
+          ]
+        ]
+      },
+      "id": "way/115502816"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/115502818",
+        "aeroway": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4436841,
+            52.2327696
+          ],
+          [
+            -0.4422108,
+            52.2340881
+          ],
+          [
+            -0.4419578,
+            52.2341111
+          ],
+          [
+            -0.4413381,
+            52.2341677
+          ],
+          [
+            -0.440698,
+            52.234226
+          ],
+          [
+            -0.4401294,
+            52.2336018
+          ],
+          [
+            -0.439848,
+            52.2331369
+          ]
+        ]
+      },
+      "id": "way/115502818"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/115502821",
+        "aeroway": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.4415494,
+            52.2349773
+          ],
+          [
+            -0.4413381,
+            52.2341677
+          ]
+        ]
+      },
+      "id": "way/115502821"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1304765856",
+        "aeroway": "aerodrome",
+        "icao": "EGBF",
+        "name": "Bedford Aerodrome",
+        "wikidata": "Q16983955"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.441492,
+          52.2336744
+        ]
+      },
+      "id": "node/1304765856"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1304784702",
+        "aeroway": "helipad"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.4697608,
+          52.2373242
+        ]
+      },
+      "id": "node/1304784702"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1305756913",
+        "aeroway": "helipad"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.4695564,
+          52.2371905
+        ]
+      },
+      "id": "node/1305756913"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1305757753",
+        "aeroway": "helipad"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.4699606,
+          52.2374637
+        ]
+      },
+      "id": "node/1305757753"
+    }
+  ]
+}

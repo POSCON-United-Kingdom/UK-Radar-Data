@@ -1,0 +1,220 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-ide",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2022-01-11T14:47:55Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/94361181",
+        "aeroway": "apron",
+        "name": "Headcorn Airstrip",
+        "source": "Bing"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.6454875,
+              51.1555789
+            ],
+            [
+              0.6449515,
+              51.1546421
+            ],
+            [
+              0.6451929,
+              51.154577
+            ],
+            [
+              0.6457347,
+              51.1544963
+            ],
+            [
+              0.645563,
+              51.1542271
+            ],
+            [
+              0.6459527,
+              51.154126
+            ],
+            [
+              0.646064,
+              51.1540938
+            ],
+            [
+              0.6460276,
+              51.1540443
+            ],
+            [
+              0.6459462,
+              51.1539597
+            ],
+            [
+              0.6464078,
+              51.1537332
+            ],
+            [
+              0.646596,
+              51.1538745
+            ],
+            [
+              0.6471982,
+              51.1541865
+            ],
+            [
+              0.6474105,
+              51.1542964
+            ],
+            [
+              0.6482949,
+              51.1551819
+            ],
+            [
+              0.6454875,
+              51.1555789
+            ]
+          ]
+        ]
+      },
+      "id": "way/94361181"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/233756325",
+        "aeroway": "hangar",
+        "building": "yes",
+        "name": "Engineering Hangar"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.6443892,
+              51.1549267
+            ],
+            [
+              0.6443141,
+              51.1547248
+            ],
+            [
+              0.6449471,
+              51.1546298
+            ],
+            [
+              0.6449515,
+              51.1546421
+            ],
+            [
+              0.6450208,
+              51.1548354
+            ],
+            [
+              0.6449369,
+              51.1548476
+            ],
+            [
+              0.6445327,
+              51.154906
+            ],
+            [
+              0.6443892,
+              51.1549267
+            ]
+          ]
+        ]
+      },
+      "id": "way/233756325"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4436430",
+        "aeroway": "runway",
+        "name": "Headcorn Airstrip",
+        "ref": "10-28"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.6343915,
+            51.1580798
+          ],
+          [
+            0.6508419,
+            51.1553543
+          ]
+        ]
+      },
+      "id": "way/4436430"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/117406716",
+        "aeroway": "runway",
+        "name": "Headcorn Airstrip",
+        "ref": "03-21"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.6496308,
+            51.1582466
+          ],
+          [
+            0.6475923,
+            51.1553935
+          ]
+        ]
+      },
+      "id": "way/117406716"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/413881123",
+        "aerodrome:type": "private",
+        "aeroway": "aerodrome",
+        "ele": "22",
+        "icao": "EGKH",
+        "is_in": "Ashford",
+        "name": "Lashenden (Headcorn) Airfield",
+        "operator": "Mr. J.P.A. Freeman",
+        "source": "wikipedia",
+        "wikidata": "Q3914269",
+        "wikipedia": "en:Lashenden (Headcorn) Airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.6419112,
+          51.1563481
+        ]
+      },
+      "id": "node/413881123"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1430323173",
+        "aeroway": "helipad",
+        "name": "Thurston Helicopters helipads"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.6467504,
+          51.154283
+        ]
+      },
+      "id": "node/1430323173"
+    }
+  ]
+}

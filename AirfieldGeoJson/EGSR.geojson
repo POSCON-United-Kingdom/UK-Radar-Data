@@ -1,0 +1,243 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-ide",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2022-01-11T11:03:09Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/91673967",
+        "aeroway": "apron"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.6752691,
+              51.9114297
+            ],
+            [
+              0.675437,
+              51.9112208
+            ],
+            [
+              0.6755527,
+              51.9111028
+            ],
+            [
+              0.6756077,
+              51.9111412
+            ],
+            [
+              0.6757047,
+              51.9112153
+            ],
+            [
+              0.6759159,
+              51.9111041
+            ],
+            [
+              0.6759563,
+              51.9110836
+            ],
+            [
+              0.6763181,
+              51.9114207
+            ],
+            [
+              0.6765555,
+              51.9113239
+            ],
+            [
+              0.6767617,
+              51.9115042
+            ],
+            [
+              0.6767205,
+              51.9115557
+            ],
+            [
+              0.67651,
+              51.9116846
+            ],
+            [
+              0.6757866,
+              51.9115643
+            ],
+            [
+              0.6752691,
+              51.9114297
+            ]
+          ]
+        ]
+      },
+      "id": "way/91673967"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/28053595",
+        "aeroway": "runway",
+        "ref": "06/24",
+        "surface": "ground",
+        "width": "15"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.6777696,
+            51.91263
+          ],
+          [
+            0.6885823,
+            51.916468
+          ]
+        ]
+      },
+      "id": "way/28053595"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/91673963",
+        "aeroway": "taxiway",
+        "source": "Bing"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.6776677,
+            51.9118867
+          ],
+          [
+            0.6887287,
+            51.9157069
+          ],
+          [
+            0.6887804,
+            51.916074
+          ],
+          [
+            0.6888134,
+            51.9165494
+          ],
+          [
+            0.6885823,
+            51.916468
+          ]
+        ]
+      },
+      "id": "way/91673963"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/91673966",
+        "aeroway": "taxiway",
+        "source": "Bing"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.6767205,
+            51.9115557
+          ],
+          [
+            0.6776677,
+            51.9118867
+          ],
+          [
+            0.6778705,
+            51.9122396
+          ],
+          [
+            0.6777696,
+            51.91263
+          ]
+        ]
+      },
+      "id": "way/91673966"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/700741811",
+        "aeroway": "runway",
+        "ref": "06/24",
+        "surface": "ground"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.6887804,
+            51.916074
+          ],
+          [
+            0.6778705,
+            51.9122396
+          ]
+        ]
+      },
+      "id": "way/700741811"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1042032887",
+        "aeroway": "aerodrome",
+        "icao": "EGSR",
+        "name": "Earls Colne Airfield",
+        "source": "ourairports.com",
+        "source:icao": "http://www.icao.int/safety/ism/Accident%20Incident%20Reporting%20Guidance/LocationIndicatorsByState.pdf",
+        "wikidata": "Q3914966"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.6825,
+          51.9143982
+        ]
+      },
+      "id": "node/1042032887"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1065325206",
+        "aeroway": "windsock"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.6852495,
+          51.9159785
+        ]
+      },
+      "id": "node/1065325206"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/6580628335",
+        "access": "private",
+        "aeroway": "helipad",
+        "name": "Essex & Herts Air Ambulance",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.6767412,
+          51.9118969
+        ]
+      },
+      "id": "node/6580628335"
+    }
+  ]
+}
