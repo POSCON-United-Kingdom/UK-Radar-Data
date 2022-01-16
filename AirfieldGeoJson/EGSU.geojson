@@ -1,0 +1,619 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-ide",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2022-01-11T10:58:02Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/22001420",
+        "aeroway": "hangar",
+        "building": "hangar",
+        "heritage": "yes",
+        "name": "Conservation in Action Hangar",
+        "wikidata": "Q17550703"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.1276748,
+              52.0941178
+            ],
+            [
+              0.1269948,
+              52.0938774
+            ],
+            [
+              0.1274824,
+              52.0933569
+            ],
+            [
+              0.1281624,
+              52.0935974
+            ],
+            [
+              0.1276748,
+              52.0941178
+            ]
+          ]
+        ]
+      },
+      "id": "way/22001420"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/22001427",
+        "addr:postcode": "CB22 4QR",
+        "aeroway": "hangar",
+        "building": "hangar",
+        "name": "Air Space Hangar"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.1362471,
+              52.0973018
+            ],
+            [
+              0.135691,
+              52.0962418
+            ],
+            [
+              0.1359236,
+              52.0961958
+            ],
+            [
+              0.1359114,
+              52.0961726
+            ],
+            [
+              0.1369135,
+              52.0959742
+            ],
+            [
+              0.136926,
+              52.095998
+            ],
+            [
+              0.1371238,
+              52.0959588
+            ],
+            [
+              0.1376796,
+              52.0970181
+            ],
+            [
+              0.1362471,
+              52.0973018
+            ]
+          ]
+        ]
+      },
+      "id": "way/22001427"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/22001429",
+        "aeroway": "hangar",
+        "building": "hangar",
+        "heritage": "yes",
+        "name": "Battle of Britain Hangar",
+        "wikidata": "Q17550319"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.1281494,
+              52.0942732
+            ],
+            [
+              0.1286248,
+              52.0937495
+            ],
+            [
+              0.1293288,
+              52.0939907
+            ],
+            [
+              0.1288534,
+              52.0945144
+            ],
+            [
+              0.1281494,
+              52.0942732
+            ]
+          ]
+        ]
+      },
+      "id": "way/22001429"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/91449418",
+        "aeroway": "apron",
+        "name": "Aircraft Parking"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.1336494,
+              52.0943766
+            ],
+            [
+              0.1370728,
+              52.0948504
+            ],
+            [
+              0.1369356,
+              52.0952244
+            ],
+            [
+              0.1335123,
+              52.0947507
+            ],
+            [
+              0.1336494,
+              52.0943766
+            ]
+          ]
+        ]
+      },
+      "id": "way/91449418"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/91449423",
+        "aeroway": "apron",
+        "name": "Duxford-based Aircraft Parking"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.1274192,
+              52.092537
+            ],
+            [
+              0.1275682,
+              52.0923367
+            ],
+            [
+              0.1275929,
+              52.0923036
+            ],
+            [
+              0.1305907,
+              52.0933191
+            ],
+            [
+              0.1304039,
+              52.09355
+            ],
+            [
+              0.1274192,
+              52.092537
+            ]
+          ]
+        ]
+      },
+      "id": "way/91449423"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/92794756",
+        "aeroway": "hangar",
+        "building": "yes",
+        "name": "Historic Flying Ltd",
+        "source": "Bing;survey"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.1394151,
+              52.095951
+            ],
+            [
+              0.13912,
+              52.0965499
+            ],
+            [
+              0.13889,
+              52.0965071
+            ],
+            [
+              0.138918,
+              52.0964503
+            ],
+            [
+              0.138792,
+              52.0964269
+            ],
+            [
+              0.1388344,
+              52.0963408
+            ],
+            [
+              0.1386455,
+              52.0963057
+            ],
+            [
+              0.1388666,
+              52.095849
+            ],
+            [
+              0.1394151,
+              52.095951
+            ]
+          ]
+        ]
+      },
+      "id": "way/92794756"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/92794766",
+        "aeroway": "hangar",
+        "building": "yes",
+        "source": "Bing"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.1390656,
+              52.0955599
+            ],
+            [
+              0.1391412,
+              52.0953961
+            ],
+            [
+              0.1393092,
+              52.0954254
+            ],
+            [
+              0.1392336,
+              52.0955892
+            ],
+            [
+              0.1390656,
+              52.0955599
+            ]
+          ]
+        ]
+      },
+      "id": "way/92794766"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/92794767",
+        "aeroway": "hangar",
+        "building": "yes",
+        "name": "Classic Wings Hangar",
+        "source": "Bing"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.1395576,
+              52.0956123
+            ],
+            [
+              0.139392,
+              52.0955877
+            ],
+            [
+              0.1394754,
+              52.0953763
+            ],
+            [
+              0.1396409,
+              52.0954009
+            ],
+            [
+              0.1395576,
+              52.0956123
+            ]
+          ]
+        ]
+      },
+      "id": "way/92794767"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/463101931",
+        "aeroway": "apron",
+        "name": "Grass Parking"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.1258616,
+              52.088089
+            ],
+            [
+              0.1264033,
+              52.0875954
+            ],
+            [
+              0.1347906,
+              52.0908895
+            ],
+            [
+              0.1341928,
+              52.0913142
+            ],
+            [
+              0.1258616,
+              52.088089
+            ]
+          ]
+        ]
+      },
+      "id": "way/463101931"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/619008335",
+        "aeroway": "hangar",
+        "building": "yes",
+        "source": "Bing"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0.139984,
+              52.0956948
+            ],
+            [
+              0.1395871,
+              52.0956346
+            ],
+            [
+              0.1396801,
+              52.0954034
+            ],
+            [
+              0.1400769,
+              52.0954636
+            ],
+            [
+              0.139984,
+              52.0956948
+            ]
+          ]
+        ]
+      },
+      "id": "way/619008335"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/4275342",
+        "aeroway": "runway",
+        "name": "06/24",
+        "source:ref": "landsat"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.140921,
+            52.094122
+          ],
+          [
+            0.1391786,
+            52.0934523
+          ],
+          [
+            0.1226976,
+            52.0871172
+          ]
+        ]
+      },
+      "id": "way/4275342"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/91449417",
+        "aeroway": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.1391786,
+            52.0934523
+          ],
+          [
+            0.1393055,
+            52.0936375
+          ],
+          [
+            0.1392423,
+            52.0938288
+          ],
+          [
+            0.1388893,
+            52.0940729
+          ],
+          [
+            0.1375945,
+            52.0947735
+          ],
+          [
+            0.1374438,
+            52.0948278
+          ],
+          [
+            0.1336467,
+            52.0942598
+          ],
+          [
+            0.1312636,
+            52.0934061
+          ],
+          [
+            0.1273083,
+            52.0920588
+          ]
+        ]
+      },
+      "id": "way/91449417"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/91449422",
+        "aeroway": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.1226976,
+            52.0871172
+          ],
+          [
+            0.1220486,
+            52.0877851
+          ],
+          [
+            0.1220885,
+            52.0880542
+          ],
+          [
+            0.1227668,
+            52.0887726
+          ],
+          [
+            0.1243574,
+            52.0902882
+          ],
+          [
+            0.1254639,
+            52.0913749
+          ],
+          [
+            0.1273083,
+            52.0920588
+          ]
+        ]
+      },
+      "id": "way/91449422"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/92794758",
+        "aeroway": "runway",
+        "name": "06 (Grass) / 24 (Grass)",
+        "source": "Bing",
+        "surface": "grass"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.1242068,
+            52.0892948
+          ],
+          [
+            0.1350651,
+            52.0934957
+          ]
+        ]
+      },
+      "id": "way/92794758"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/463101925",
+        "aeroway": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.1374438,
+            52.0948278
+          ],
+          [
+            0.1376612,
+            52.0949906
+          ],
+          [
+            0.1386317,
+            52.0951439
+          ],
+          [
+            0.1387642,
+            52.0952253
+          ],
+          [
+            0.1387581,
+            52.0953389
+          ],
+          [
+            0.1386471,
+            52.0956493
+          ],
+          [
+            0.1396546,
+            52.0957988
+          ]
+        ]
+      },
+      "id": "way/463101925"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/387484138",
+        "aeroway": "aerodrome",
+        "icao": "EGSU",
+        "name": "Duxford",
+        "operator": "Imperial War Museum",
+        "wikidata": "Q2317425"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.1311651,
+          52.0938185
+        ]
+      },
+      "id": "node/387484138"
+    }
+  ]
+}

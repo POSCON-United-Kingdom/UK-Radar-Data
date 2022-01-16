@@ -1,0 +1,21 @@
+; EGTT EGPX EGGX
+; File updated {DATE}
+; By: Chris Parkinson
+
+#define Black 4209979
+#define Maroon 128
+#define Green 32768
+#define Olive 32896
+#define Navy 8388608
+#define Purple 8388736
+#define Teal 8421376
+#define Grey 8421504
+#define Silver 12632256
+#define Red 255
+#define Lime 65280
+#define Blue 16711680
+#define Fuchsia 16711935
+#define Aqua 16776960
+#define White 16777215
+#define COLOR_BORDERS 14145495
+#define COLOR_COASTLINE 16750230

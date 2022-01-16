@@ -1,0 +1,235 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-ide",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2022-01-11T15:42:42Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/28474564",
+        "aeroway": "runway",
+        "ref": "18-36",
+        "source": "landsat"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.6148763,
+            52.1962855
+          ],
+          [
+            -1.6146227,
+            52.1940716
+          ],
+          [
+            -1.6141016,
+            52.1893487
+          ],
+          [
+            -1.6139606,
+            52.1880926
+          ]
+        ]
+      },
+      "id": "way/28474564"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/28474565",
+        "aeroway": "runway",
+        "ref": "05-23",
+        "source": "landsat"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.6175845,
+            52.187225
+          ],
+          [
+            -1.6141016,
+            52.1893487
+          ],
+          [
+            -1.6128807,
+            52.1900837
+          ]
+        ]
+      },
+      "id": "way/28474565"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/28474566",
+        "aeroway": "taxiway",
+        "note": "Eastern end used as a market on Saturdays",
+        "source": "landsat"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.6179715,
+            52.1945915
+          ],
+          [
+            -1.6146227,
+            52.1940716
+          ]
+        ]
+      },
+      "id": "way/28474566"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/28474567",
+        "aeroway": "taxiway",
+        "source": "landsat"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.6139606,
+            52.1880926
+          ],
+          [
+            -1.6138361,
+            52.1867488
+          ],
+          [
+            -1.6140705,
+            52.1865684
+          ],
+          [
+            -1.616447,
+            52.1864815
+          ],
+          [
+            -1.6172291,
+            52.1866637
+          ],
+          [
+            -1.6179391,
+            52.1870061
+          ],
+          [
+            -1.6184323,
+            52.1873153
+          ],
+          [
+            -1.6187504,
+            52.1876215
+          ],
+          [
+            -1.6188872,
+            52.1880289
+          ],
+          [
+            -1.6186131,
+            52.1893132
+          ],
+          [
+            -1.6180563,
+            52.19058
+          ],
+          [
+            -1.6179882,
+            52.1909739
+          ],
+          [
+            -1.6181652,
+            52.1914971
+          ],
+          [
+            -1.6184936,
+            52.1930322
+          ],
+          [
+            -1.6184758,
+            52.1934117
+          ],
+          [
+            -1.6179715,
+            52.1945915
+          ],
+          [
+            -1.6170108,
+            52.1967279
+          ],
+          [
+            -1.6165899,
+            52.1970551
+          ],
+          [
+            -1.6161761,
+            52.1972209
+          ],
+          [
+            -1.6156321,
+            52.1973477
+          ],
+          [
+            -1.6151418,
+            52.1973281
+          ],
+          [
+            -1.6149704,
+            52.1971991
+          ],
+          [
+            -1.6148763,
+            52.1962855
+          ]
+        ]
+      },
+      "id": "way/28474567"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/168196581",
+        "aeroway": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -1.6175845,
+            52.187225
+          ],
+          [
+            -1.6179391,
+            52.1870061
+          ]
+        ]
+      },
+      "id": "way/168196581"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/1591225089",
+        "aeroway": "aerodrome",
+        "icao": "EGBW",
+        "name": "Wellesbourne Airfield",
+        "wikidata": "Q3915273",
+        "wikipedia": "en:Wellesbourne Mountford Airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -1.6144564,
+          52.1928407
+        ]
+      },
+      "id": "node/1591225089"
+    }
+  ]
+}

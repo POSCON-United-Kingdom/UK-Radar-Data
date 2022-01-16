@@ -1,0 +1,10 @@
+[INFO]
+UK EGTT and EGPX            ; Sector Name
+LON_CTR                     ; Callsign
+EGLL                        ; Airport. EGLL
+N053.03.32.931              ; Center Latitude.  EGLL Airport
+W001.00.00.000              ; Center Longitude. EGLL Airport
+60.000                      ; NM per degree Latitude.  60 nm everywhere.
+36.060                      ; NM per degree Longitude.
+1.000                       ; Magnetic Variation. 0 for true north
+1.000                       ; Scale. Should always be 1.

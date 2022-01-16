@@ -1,0 +1,178 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-ide",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2022-01-11T15:18:11Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/122508783",
+        "aeroway": "apron"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -0.2443303,
+              52.4686193
+            ],
+            [
+              -0.2443936,
+              52.4683754
+            ],
+            [
+              -0.2443105,
+              52.4683674
+            ],
+            [
+              -0.2429696,
+              52.4682382
+            ],
+            [
+              -0.2428955,
+              52.4682311
+            ],
+            [
+              -0.2428322,
+              52.4684749
+            ],
+            [
+              -0.2443303,
+              52.4686193
+            ]
+          ]
+        ]
+      },
+      "id": "way/122508783"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/35061534",
+        "aeroway": "runway",
+        "name": "Peterborough Conington",
+        "ref": "10-28"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.2582247,
+            52.4684184
+          ],
+          [
+            -0.2575192,
+            52.4683851
+          ],
+          [
+            -0.2444263,
+            52.4677606
+          ],
+          [
+            -0.2439521,
+            52.4677403
+          ]
+        ]
+      },
+      "id": "way/35061534"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/35061535",
+        "aeroway": "runway",
+        "name": "Peterborough Conington",
+        "ref": "16-34"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.2575192,
+            52.4683851
+          ],
+          [
+            -0.2515996,
+            52.4622899
+          ]
+        ]
+      },
+      "id": "way/35061535"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/122508779",
+        "aeroway": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.2439521,
+            52.4677403
+          ],
+          [
+            -0.2433304,
+            52.4676975
+          ],
+          [
+            -0.2431372,
+            52.4677302
+          ],
+          [
+            -0.2430575,
+            52.467846
+          ],
+          [
+            -0.2429696,
+            52.4682382
+          ]
+        ]
+      },
+      "id": "way/122508779"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/122508780",
+        "aeroway": "taxiway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -0.2444263,
+            52.4677606
+          ],
+          [
+            -0.2443105,
+            52.4683674
+          ]
+        ]
+      },
+      "id": "way/122508780"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/451679880",
+        "aeroway": "aerodrome",
+        "icao": "EGSF",
+        "name": "Peterborough Conington",
+        "source:icao": "http://www.icao.int/safety/ism/Accident%20Incident%20Reporting%20Guidance/LocationIndicatorsByState.pdf",
+        "wikidata": "Q3913411"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -0.2504117,
+          52.4680369
+        ]
+      },
+      "id": "node/451679880"
+    }
+  ]
+}
