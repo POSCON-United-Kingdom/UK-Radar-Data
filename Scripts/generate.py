@@ -2,51 +2,33 @@
 import math
 import datetime
 import argparse
-import zipfile
 import shutil
-from geopy import point
-from numpy.core.multiarray import concatenate
 import urllib3
 import argparse
-import numpy as np
 import requests
 import re
 import os
-import fnmatch
-import xml.etree.ElementTree as xtree
 import pandas as pd
 import urllib3
-import xmlschema
-import pyproj
 from datetime import date
-from defusedxml import defuse_stdlib
 from bs4 import BeautifulSoup
 from colorama import Fore, Style
-from time import time, ctime
 from alive_progress import alive_bar
-from pykml import parser
-from shapely.geometry import MultiPoint
-from shapely.geometry import Point as sPoint
-from shapely.ops import transform
-from functools import partial
-from geopy.point import Point
-from geopy.distance import geodesic
-from xml.dom import minidom
 
-work_dir = os.path.dirname(__file__)
+work_dir = os.getcwd()
 
 class Airac:
-    '''Class for general functions relating to AIRAC'''
+    """Class for general functions relating to AIRAC"""
 
     def __init__(self):
-        # First AIRAC date following the last cycle length modification
+        """First AIRAC date following the last cycle length modification"""
         startDate = "2019-01-02"
         self.baseDate = date.fromisoformat(str(startDate))
         # Length of one AIRAC cycle
         self.cycleDays = 28
 
     def initialise(self, dateIn=0):
-        # Calculate the number of AIRAC cycles between any given date and the start date
+        """Calculate the number of AIRAC cycles between any given date and the start date"""
         if dateIn:
             inputDate = date.fromisoformat(str(dateIn))
         else:
@@ -60,19 +42,19 @@ class Airac:
         return numberOfCycles
 
     def currentCycle(self):
-        # Return the date of the current AIRAC cycle
+        """Return the date of the current AIRAC cycle"""
         numberOfCycles = self.initialise()
         numberOfDays = numberOfCycles * self.cycleDays + 1
         return self.baseDate + datetime.timedelta(days=numberOfDays)
 
     def nextCycle(self):
-        # Return the date of the next AIRAC cycle
+        """Return the date of the next AIRAC cycle"""
         numberOfCycles = self.initialise()
         numberOfDays = (numberOfCycles + 1) * self.cycleDays + 1
         return self.baseDate + datetime.timedelta(days=numberOfDays)
 
     def url(self, next=0):
-        # Return a generated URL based on the AIRAC cycle start date
+        """Return a generated URL based on the AIRAC cycle start date"""
         baseUrl = "https://www.aurora.nats.co.uk/htmlAIP/Publications/"
         if next:
             baseDate = self.nextCycle() # if the 'next' variable is passed, generate a URL for the next AIRAC cycle
@@ -102,6 +84,48 @@ class Webscrape:
 
         page = requests.get(address)
         return BeautifulSoup(page.content, "lxml")
+    
+    def cw_acw_helper(self, data_in, output_title):
+        """creates a list of complex airspace areas with the direction of the arc for reference later on"""
+        dfColumns = ['area', 'number', 'direction']
+        complex_areas = pd.DataFrame(columns=dfColumns)
+        row = 0
+        complex_search_data = data_in.find_all("p") # find everything enclosed in <p></p> tags
+        complex_len = len(complex_search_data)
+        while row < complex_len:
+            title = re.search(r"id=\"ID_[\d]{8,10}\"\>([A-Z]*)\s(FIR|CTA|TMA|CTR)\s([0-9]{0,2})\<", str(complex_search_data[row]))
+            if title:
+                print_title = f"{str(title.group(1))} {str(title.group(2))} {str(title.group(3))}"
+
+                direction = re.findall(r"(?<=\s)(anti-clockwise|clockwise)(?=\s)", str(complex_search_data[row+1]))
+                if direction:
+                    area_number = 0
+                    for d in direction:
+                        ca_out = {'area': print_title, 'number': str(area_number), 'direction': str(d)}
+                        complex_areas = complex_areas.append(ca_out, ignore_index=True)
+                        area_number += 1
+                    row += 1
+            row += 1
+        complex_areas.to_csv(f'{work_dir}\\DataFrames\{output_title}-CW-ACW-Helper.csv')
+    
+    def circle_helper(self, data_in, output_title):
+        """creates a list of complex airspace areas with the direction of the arc for reference later on"""
+        dfColumns = ['area', 'number', 'direction']
+        complex_areas = pd.DataFrame(columns=dfColumns)
+        row = 0
+        complex_search_data = data_in.find_all("p") # find everything enclosed in <p></p> tags
+        complex_len = len(complex_search_data)
+        while row < complex_len:
+            title = re.search(r"id=\"ID_[\d]{8,10}\"\>([A-Z]*)\s(ATZ)\<", str(complex_search_data[row]))
+            if title:
+                print_title = f"{str(title.group(1))} {str(title.group(2))}"
+                circle = re.findall(r"(?<=\s)(circle)(?=\,|\s)", str(complex_search_data[row+1]))
+                if circle:
+                    ca_out = {'area': print_title, 'number': "0", 'direction': "circle"}
+                    complex_areas = complex_areas.append(ca_out, ignore_index=True)
+                    row += 1
+            row += 1
+        complex_areas.to_csv(f'{work_dir}\\DataFrames\{output_title}-Circle-Helper.csv')
 
     def parse_ad01_data(self):
         """Parse the data from AD-0.1"""
@@ -152,7 +176,7 @@ class Webscrape:
 
                     # Find current magnetic variation for this aerodrome
                     aerodromeMagVar = self.search("([\d]{1}\.[\d]{2}).([W|E]{1})", "TAD_HP;VAL_MAG_VAR", str(aerodromeAd0202))
-                    pM = Geo.plusMinus(aerodromeMagVar[0][1])
+                    pM = self.plusMinus(aerodromeMagVar[0][1])
                     floatMagVar = pM + aerodromeMagVar[0][0]
 
                     # Find lat/lon/elev for aerodrome
@@ -269,7 +293,8 @@ class Webscrape:
                 bar()
         return(df)
 
-    def parse_enr02_data(self):
+    def parse_enr021_data(self): # re-write of this section has been completed
+        """This will parse ENR 2 data from the given AIP"""
         dfColumns = ['name', 'callsign', 'frequency', 'boundary', 'upper_fl', 'lower_fl']
         df_fir = pd.DataFrame(columns=dfColumns)
         df_uir = pd.DataFrame(columns=dfColumns)
@@ -279,27 +304,7 @@ class Webscrape:
         print("Parsing "+ self.country +"-ENR-2.1 Data (FIR, UIR, TMA AND CTA)...")
         getData = self.get_table_soup(self.country + "-ENR-2.1-en-GB.html")
 
-        # create a list of complex airspace areas with the direction of the arc for reference later on
-        dfColumns = ['area', 'number', 'direction']
-        complex_areas = pd.DataFrame(columns=dfColumns)
-        row = 0
-        complex_search_data = getData.find_all("p") # find everything enclosed in <p></p> tags
-        complex_len = len(complex_search_data)
-        while row < complex_len:
-            title = re.search(r"id=\"ID_[\d]{8,10}\"\>([A-Z]*)\s(FIR|CTA|TMA|CTR)\s([0-9]{0,2})\<", str(complex_search_data[row]))
-            if title:
-                print_title = f"{str(title.group(1))} {str(title.group(2))} {str(title.group(3))}"
-
-                direction = re.findall(r"(?<=\s)(anti-clockwise|clockwise)(?=\s)", str(complex_search_data[row+1]))
-                if direction:
-                    area_number = 0
-                    for d in direction:
-                        ca_out = {'area': print_title, 'number': str(area_number), 'direction': str(d)}
-                        complex_areas = complex_areas.append(ca_out, ignore_index=True)
-                        area_number += 1
-                    row += 1
-            row += 1
-        complex_areas.to_csv(f'{work_dir}\\DataFrames\Enr02-CW-ACW-Helper.csv')
+        self.cw_acw_helper(getData, "Enr021")
 
         searchData = getData.find_all("span")
         barLength = len(searchData)
@@ -344,10 +349,7 @@ class Webscrape:
                         frequency = print_frequency.group(1)
                         first_freq = True
 
-                if arc:
-                    # what to do with "thence clockwise by the arc of a circle"
-                    radius = re.search(r"\>([\d]{1,2})\<", str(searchData[row-1]))
-
+                if arc: # what to do if an arc is found
                     # check to see if this a series, if so then increment the counter
                     if df_in_title == str(last_arc_title):
                         arc_counter += 0
@@ -355,10 +357,9 @@ class Webscrape:
                         arc_counter == 0
                     
                     # is this going to be a clockwise or anti-clockwise arc?
-                    complex_areas = pd.read_csv(f'{work_dir}\\DataFrames\\Enr02-CW-ACW-Helper.csv', index_col=0)
+                    complex_areas = pd.read_csv(f'{work_dir}\\DataFrames\\Enr021-CW-ACW-Helper.csv', index_col=0)
                     cacw = complex_areas.loc[(complex_areas["area"].str.match(df_in_title)) & (complex_areas["number"] == arc_counter)]
                     cacw = cacw['direction'].to_string(index=False)
-                    print(cacw)
                     if cacw == "clockwise":
                         cacw = 1
                     elif cacw == "anti-clockwise":
@@ -455,6 +456,166 @@ class Webscrape:
         df_uir = df_fir # UIR is same extent as FIR
         return [df_fir, df_uir, df_cta, df_tma]
 
+    def parse_enr022_data(self): # re-write of this section has been completed
+        """This will parse ENR 2.2 data from the given AIP"""
+        dfColumns = ['name', 'callsign', 'frequency', 'boundary', 'upper_fl', 'lower_fl']
+        df_atz = pd.DataFrame(columns=dfColumns)
+
+        print("Parsing "+ self.country +"-ENR-2.2 Data (OTHER REGULATED AIRSPACE)...")
+        getData = self.get_table_soup(self.country + "-ENR-2.2-en-GB.html")
+
+        self.cw_acw_helper(getData, "Enr022")
+        self.circle_helper(getData, "Enr022")
+
+        searchData = getData.find_all("span")
+        barLength = len(searchData)
+        airspace = False
+        row = 0
+        last_arc_title = False
+        arc_counter = 0
+        space = []
+        loop_coord = False
+        first_callsign = False
+        first_freq = False
+        with alive_bar(barLength) as bar: # Define the progress bar
+            while row < barLength:
+                # find an airspace
+                title = re.search(r"TAIRSPACE;TXT_NAME", str(searchData[row]))
+                coords = re.search(r"(?:TAIRSPACE_VERTEX;GEO_L(?:AT|ONG);)([\d]{4})", str(searchData[row]))
+                callsign = re.search(r"TUNIT;TXT_NAME", str(searchData[row]))
+                freq = re.search(r"TFREQUENCY;VAL_FREQ_TRANS", str(searchData[row]))
+                arc = re.search(r"TAIRSPACE_VERTEX;VAL_RADIUS_ARC", str(searchData[row]))
+
+                if title:
+                    # get the printed title
+                    print_title = re.search(r"\>(.*)\<", str(searchData[row-1]))
+                    if print_title:
+                        # search for FIR / UIR* / CTA / TMA in the printed title *removed as same extent of FIR in UK
+                        airspace = re.search(r"(ATZ)", str(searchData[row-1]))
+                        if airspace:
+                            df_in_title = str(print_title.group(1))
+                        loop_coord = True
+ 
+                if (callsign) and (first_callsign is False):
+                    # get the first (and only the first) printed callsign
+                    print_callsign = re.search(r"\>(.*)\<", str(searchData[row-1]))
+                    if print_callsign:
+                        callsign_out = print_callsign.group(1)
+                        first_callsign = True
+                
+                if (freq) and (first_freq is False):
+                    # get the first (and only the first) printed callsign
+                    print_frequency = re.search(r"\>(1[1-3]{1}[\d]{1}\.[\d]{3})\<", str(searchData[row-1]))
+                    if print_frequency:
+                        frequency = print_frequency.group(1)
+                        first_freq = True
+
+                if arc: # what to do if an arc is found
+                    # check to see if this a series, if so then increment the counter
+                    if df_in_title == str(last_arc_title):
+                        arc_counter += 0
+                    else:
+                        arc_counter == 0
+                    
+                    # is this going to be a clockwise or anti-clockwise arc?
+                    complex_areas = pd.read_csv(f'{work_dir}\\DataFrames\\Enr022-CW-ACW-Helper.csv', index_col=0)
+                    cacw = complex_areas.loc[(complex_areas["area"].str.match(df_in_title)) & (complex_areas["number"] == arc_counter)]
+                    cacw = cacw['direction'].to_string(index=False)
+                    if cacw == "clockwise":
+                        cacw = 1
+                    elif cacw == "anti-clockwise":
+                        cacw = 2
+                    
+                    # is this a circle?
+                    complex_areas = pd.read_csv(f'{work_dir}\\DataFrames\\Enr022-Circle-Helper.csv', index_col=0)
+                    cacw = complex_areas.loc[(complex_areas["area"].str.match(df_in_title))]
+                    if cacw is not None:
+                        cacw = 3
+
+                    # work back through the rows to identify the start lat/lon
+                    count_back = 2 # start countback from 2
+                    start_lon = None
+                    start_lat = None
+                    while start_lon == None:
+                        start_lon = re.search(r"\>([\d]{6,7})(E|W)\<", str(searchData[row-count_back]))
+                        count_back += 1
+                    while start_lat == None:
+                        start_lat = re.search(r"\>([\d]{6,7})(N|S)\<", str(searchData[row-count_back]))
+                        count_back += 1
+                    
+                    # work forward to find the centre point and end lat/lon
+                    count_forward = 1
+                    end_lat = None
+                    end_lon = None
+                    mid_lat = None
+                    mid_lon = None
+                    while mid_lat == None:
+                        mid_lat = re.search(r"\>([\d]{6,7})(N|S)\<", str(searchData[row+count_forward]))
+                        count_forward += 1
+                    while mid_lon == None:
+                        mid_lon = re.search(r"\>([\d]{6,7})(E|W)\<", str(searchData[row+count_forward]))
+                        count_forward += 1
+                    while end_lat == None:
+                        end_lat = re.search(r"\>([\d]{6,7})(N|S)\<", str(searchData[row+count_forward]))
+                        count_forward += 1
+                    while end_lon == None:
+                        end_lon = re.search(r"\>([\d]{6,7})(E|W)\<", str(searchData[row+count_forward]))
+                        count_forward += 1
+                    
+                    # convert from dms to dd
+                    start_dd = self.dms2dd(start_lat[1], start_lon[1], start_lat[2], start_lon[2])
+                    if (cacw == 2) or (cacw == 2):
+                        mid_dd = self.dms2dd(mid_lat[1], mid_lon[1], mid_lat[2], mid_lon[2])
+                        end_dd = self.dms2dd(end_lat[1], end_lon[1], end_lat[2], end_lon[2])
+                    elif cacw == 3:
+                        mid_dd = start_dd
+                        end_dd = start_dd
+
+                    arc_out = self.generate_semicircle(float(mid_dd[0]), float(mid_dd[1]), float(start_dd[0]), float(start_dd[1]), float(end_dd[0]), float(end_dd[1]), cacw)
+                    for coord in arc_out:
+                        space.append(coord)
+                    
+                    # store the last arc title to compare against
+                    last_arc_title = str(print_title.group(1))
+
+                if coords:
+                    loop_coord = False
+                    # get the coordinate
+                    print_coord = re.findall(r"\>([\d]{6,7})(N|S|E|W)\<", str(searchData[row-1]))
+                    if print_coord: 
+                        space.append(print_coord[0])
+ 
+                if (loop_coord) and (space != []) and (first_callsign is True) and (first_freq is True):
+                    def coord_to_table(last_df_in_title, callsign_out, frequency, output):
+                        df_out = {
+                            'name': last_df_in_title,
+                            'callsign': callsign_out,
+                            'frequency': str(frequency),
+                            'boundary': str(output),
+                            'upper_fl': '000',
+                            'lower_fl': '000'
+                            }
+                        return df_out
+                    
+                    output = self.getBoundary(space, last_df_in_title)
+                    if airspace:
+                        # for ATZs do this
+                        if last_airspace.group(1) == "ATZ":
+                            df_atz_out = coord_to_table(last_df_in_title, callsign_out, frequency, output)
+                            df_atz = df_atz.append(df_atz_out, ignore_index=True)
+                        space = []
+                        loop_coord = True
+                        first_callsign = False
+                        first_freq = False
+
+                if airspace:
+                    last_df_in_title = df_in_title
+                    last_airspace = airspace
+                bar()
+                row += 1
+        return df_atz
+
+
     def parse_enr03_data(self, section):
         dfColumns = ['name', 'route']
         dfEnr03 = pd.DataFrame(columns=dfColumns)
@@ -529,6 +690,7 @@ class Webscrape:
         dfEnr05 = pd.DataFrame(columns=dfColumns)
         print("Parsing "+ self.country +"-ENR-5.1 data for PROHIBITED, RESTRICTED AND DANGER AREAS...")
         getENR5 = self.get_table_soup(self.country + "-ENR-5.1-en-GB.html")
+        self.cw_acw_helper(getENR5, "Enr051")
         listTables = getENR5.find_all("tr")
         barLength = len(listTables)
         with alive_bar(barLength) as bar: # Define the progress bar
@@ -552,12 +714,20 @@ class Webscrape:
         test = self.parse_enr051_data()
         test.to_csv('Dataframes/Enr051.csv')
 
+    @staticmethod
+    def plusMinus(arg):
+        """Turns a compass point into the correct + or - for lat and long"""
+        if arg in ('N','E'):
+            return "+"
+        return "-"
+
     def run(self):
         full_dir = f"{work_dir}\\DataFrames\\"
         Ad01 = self.parse_ad01_data() # returns single dataframe
         Ad02 = self.parse_ad02_data(Ad01) # returns dfAd01, df_rwy, df_srv
         Enr016 = self.parse_enr016_data(Ad01) # returns single dataframe
-        Enr02 = self.parse_enr02_data() # returns dfFir, dfUir, dfCta, dfTma
+        Enr021 = self.parse_enr021_data() # returns dfFir, dfUir, dfCta, dfTma
+        Enr022 = self.parse_enr022_data() # returns dfatz
         Enr031 = self.parse_enr03_data('1') # returns single dataframe
         Enr033 = self.parse_enr03_data('3') # returns single dataframe
         Enr035 = self.parse_enr03_data('5') # returns single dataframe
@@ -569,10 +739,11 @@ class Webscrape:
         Ad02[1].to_csv(f'{full_dir}Ad02-Runways.csv')
         Ad02[2].to_csv(f'{full_dir}Ad02-Services.csv')
         Enr016.to_csv(f'{full_dir}Enr016.csv')
-        Enr02[0].to_csv(f'{full_dir}Enr02-FIR.csv')
-        Enr02[1].to_csv(f'{full_dir}Enr02-UIR.csv')
-        Enr02[2].to_csv(f'{full_dir}Enr02-CTA.csv')
-        Enr02[3].to_csv(f'{full_dir}Enr02-TMA.csv')
+        Enr021[0].to_csv(f'{full_dir}Enr021-FIR.csv')
+        Enr021[1].to_csv(f'{full_dir}Enr021-UIR.csv')
+        Enr021[2].to_csv(f'{full_dir}Enr021-CTA.csv')
+        Enr021[3].to_csv(f'{full_dir}Enr021-TMA.csv')
+        Enr022.to_csv(f'{full_dir}Enr022-ATZ.csv')
         Enr031.to_csv(f'{full_dir}Enr031.csv')
         Enr033.to_csv(f'{full_dir}Enr033.csv')
         Enr035.to_csv(f'{full_dir}Enr035.csv')
@@ -580,7 +751,7 @@ class Webscrape:
         Enr044.to_csv(f'{full_dir}Enr044.csv')
         Enr051.to_csv(f'{full_dir}Enr051.csv')
 
-        return [Ad01, Ad02, Enr016, Enr02, Enr031, Enr033, Enr035, Enr041, Enr044, Enr051]
+        return [Ad01, Ad02, Enr016, Enr021, Enr022, Enr031, Enr033, Enr035, Enr041, Enr044, Enr051]
 
     @staticmethod
     def search(find, name, string):
@@ -672,16 +843,22 @@ class Webscrape:
         """Dreate a semicircle. Direction is 1 for clockwise and 2 for anti-clockwise"""
         from geographiclib.geodesic import Geodesic
 
-        # centre point to start
-        geolib_start = Geodesic.WGS84.Inverse(center_x, center_y, start_x, start_y)
-        start_brg = geolib_start['azi1']
-        start_dst = geolib_start['s12']
-        start_brg_compass = ((360 + start_brg) % 360)
+        if (direction == 1) or (direction == 2):
+            # centre point to start
+            geolib_start = Geodesic.WGS84.Inverse(center_x, center_y, start_x, start_y)
+            start_brg = geolib_start['azi1']
+            start_dst = geolib_start['s12']
+            start_brg_compass = ((360 + start_brg) % 360)
 
-        # centre point to end
-        geolib_end = Geodesic.WGS84.Inverse(center_x, center_y, end_x, end_y)
-        end_brg = geolib_end['azi1']
-        end_brg_compass = ((360 + end_brg) % 360)
+            # centre point to end
+            geolib_end = Geodesic.WGS84.Inverse(center_x, center_y, end_x, end_y)
+            end_brg = geolib_end['azi1']
+            end_brg_compass = ((360 + end_brg) % 360)
+        elif direction == 3: # if direction set to 3, draw a circle
+            start_brg = 0
+            start_dst = 2.5 * 1852 # convert nautical miles to meters
+            end_brg_compass = 359
+            direction = 1 # we can set the direction to 1 as the bit of code below can still be used
 
         arc_out = []
         if direction == 1: # if cw
@@ -689,13 +866,11 @@ class Webscrape:
                 arc_coords = Geodesic.WGS84.Direct(center_x, center_y, start_brg, start_dst)
                 arc_out.append(self.dd2dms(arc_coords['lat2'], arc_coords['lon2'], "1"))
                 start_brg = ((start_brg + 1) % 360)
-                print(start_brg, end_brg_compass)
         elif direction == 2: # if acw
             while round(start_brg) != round(end_brg_compass):
                 arc_coords = Geodesic.WGS84.Direct(center_x, center_y, start_brg, start_dst)
                 arc_out.append(self.dd2dms(arc_coords['lat2'], arc_coords['lon2'], "1"))
                 start_brg = ((start_brg - 1) % 360)
-                print(start_brg, end_brg_compass)
 
         return arc_out
 
@@ -752,16 +927,17 @@ class Builder:
             scrape.append(pd.read_csv('Dataframes/Ad02-Runways.csv', index_col=0))  #1
             scrape.append(pd.read_csv('Dataframes/Ad02-Services.csv', index_col=0)) #2
             scrape.append(pd.read_csv('Dataframes/Enr016.csv', index_col=0))        #3
-            scrape.append(pd.read_csv('DataFrames/Enr02-FIR.csv', index_col=0))     #4
-            scrape.append(pd.read_csv('DataFrames/Enr02-UIR.csv', index_col=0))     #5
-            scrape.append(pd.read_csv('DataFrames/Enr02-CTA.csv', index_col=0))     #6
-            scrape.append(pd.read_csv('DataFrames/Enr02-TMA.csv', index_col=0))     #7
-            scrape.append(pd.read_csv('DataFrames/Enr031.csv', index_col=0))        #8
-            scrape.append(pd.read_csv('DataFrames/Enr033.csv', index_col=0))        #9
-            scrape.append(pd.read_csv('DataFrames/Enr035.csv', index_col=0))        #10
-            scrape.append(pd.read_csv('DataFrames/Enr041.csv', index_col=0))        #11
-            scrape.append(pd.read_csv('DataFrames/Enr044.csv', index_col=0))        #12
-            scrape.append(pd.read_csv('DataFrames/Enr051.csv', index_col=0))        #13
+            scrape.append(pd.read_csv('DataFrames/Enr021-FIR.csv', index_col=0))    #4
+            scrape.append(pd.read_csv('DataFrames/Enr021-UIR.csv', index_col=0))    #5
+            scrape.append(pd.read_csv('DataFrames/Enr021-CTA.csv', index_col=0))    #6
+            scrape.append(pd.read_csv('DataFrames/Enr021-TMA.csv', index_col=0))    #7
+            scrape.append(pd.read_csv('DataFrames/Enr022-ATZ.csv', index_col=0))    #8
+            scrape.append(pd.read_csv('DataFrames/Enr031.csv', index_col=0))        #9
+            scrape.append(pd.read_csv('DataFrames/Enr033.csv', index_col=0))        #10
+            scrape.append(pd.read_csv('DataFrames/Enr035.csv', index_col=0))        #11
+            scrape.append(pd.read_csv('DataFrames/Enr041.csv', index_col=0))        #12
+            scrape.append(pd.read_csv('DataFrames/Enr044.csv', index_col=0))        #13
+            scrape.append(pd.read_csv('DataFrames/Enr051.csv', index_col=0))        #14
             self.scrape = scrape
         else:
             initWebscrape = Webscrape()
@@ -805,7 +981,7 @@ class Builder:
         # VOR section
         with open(sct_file, 'a') as write_sct_file:
             write_sct_file.write('[VOR]\nRANGE 10 3000\n')
-            df = self.scrape[11]
+            df = self.scrape[12]
             for index, row in df.iterrows():
                 write_sct_file.write(f"{row['name']} {row['freq']} {row['coords']}\n")
             write_sct_file.write('\n')
@@ -848,7 +1024,7 @@ class Builder:
         # FIXES section
         with open(sct_file, 'a') as write_sct_file:
             write_sct_file.write('[FIXES]\nRANGE 0 200\n')
-            df = self.scrape[12]
+            df = self.scrape[13]
             for index, row in df.iterrows():
                 write_sct_file.write(f"{row['name']}\t{row['coords']}\n")
             write_sct_file.write('\n')
@@ -861,6 +1037,7 @@ class Builder:
 
         # ARTCC LOW section CTA
         build_artcc(6, "ARTCC LOW", "0", "2000")
+        build_artcc(8, "ARTCC LOW", "0", "2000")
 
         # SID section
 
@@ -870,7 +1047,7 @@ class Builder:
         with open(sct_file, 'a') as write_sct_file:
             write_sct_file.write('[LOW AIRWAY]\nRANGE 10 200\n')
             write_sct_file.write(';ENR-3.3\n')
-            df = self.scrape[9]
+            df = self.scrape[10]
             for index, row in df.iterrows():
                 route = row['route']
                 split_route = route.split('/')
@@ -884,7 +1061,7 @@ class Builder:
         with open(sct_file, 'a') as write_sct_file:
             write_sct_file.write('[HIGH AIRWAY]\nRANGE 10 3000\n')
             write_sct_file.write(';ENR-3.1\n')
-            df = self.scrape[8]
+            df = self.scrape[9]
             for index, row in df.iterrows():
                 route = row['route']
                 split_route = route.split('/')
@@ -894,7 +1071,7 @@ class Builder:
                 write_sct_file.write(f"{row['name']}\t{full_route}\n")
             
             write_sct_file.write(';ENR-3.5\n')
-            df = self.scrape[10]
+            df = self.scrape[11]
             for index, row in df.iterrows():
                 route = row['route']
                 split_route = route.split('/')
@@ -912,7 +1089,7 @@ class Builder:
         # ENR-5.1 DANGER / RESTRICTED areas
         with open(sct_file, 'a') as write_sct_file:
             write_sct_file.write(f';ENR-5.1\nRANGE 0 1500\n')
-            df = self.scrape[13]
+            df = self.scrape[14]
             for index, row in df.iterrows():
                 boundary = row['boundary']
                 draw_line = boundary.split('/')
@@ -940,7 +1117,7 @@ class Builder:
         # VOR labels
         with open(sct_file, 'a') as write_sct_file:
             write_sct_file.write(';VOR Names\nRANGE:10:1000\n')
-            df_enr044 = self.scrape[11]
+            df_enr044 = self.scrape[12]
             for index, row in df_enr044.iterrows():
                 coords = row['coords']
                 write_sct_file.write(f"{coords.replace(' ', ':')}:VOR:{row['name']}\n")
@@ -995,401 +1172,19 @@ class Builder:
                         num += 1
             write_sct_file.write('\n')
 
-
-
-class Geo:
-    '''Class to store various geo tools'''
-
-    @staticmethod
-    def geodesic_point_buffer(lat, lon, km):
-        proj_wgs84 = pyproj.Proj('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')
-        # Azimuthal equidistant projection
-        aeqd_proj = '+proj=aeqd +lat_0={lat} +lon_0={lon} +x_0=0 +y_0=0'
-        project = partial(
-            pyproj.transform,
-            pyproj.Proj(aeqd_proj.format(lat=lat, lon=lon)),
-            proj_wgs84)
-        buf = sPoint(0, 0).buffer(km * 1000)  # distance in metres
-        return transform(project, buf).exterior.coords[:]
-
-    @staticmethod
-    def northSouth(arg): # Turns a compass point into the correct + or - for lat and long
-        if arg in ('+'):
-            return "N"
-        return "S"
-
-    @staticmethod
-    def eastWest(arg): # Turns a compass point into the correct + or - for lat and long
-        if arg in ('+'):
-            return "E"
-        return "W"
-
-    @staticmethod
-    def plusMinus(arg): # Turns a compass point into the correct + or - for lat and long
-        if arg in ('N','E'):
-            return "+"
-        return "-"
-
-    @staticmethod
-    def backBearing(brg):
-        if (float(brg) - 180) < 0:
-            bB = float(brg) + 180.00
-        else:
-            bB = float(brg) - 180.00
-        return round(bB, 2)
-
-    @staticmethod
-    def kmlMappingConvert(fileIn, icao): # BUG: needs reworking
-        def mapLabels():
-            # code to generate the map labels.
-            points = MultiPoint(latLonString) # function to calculate polygon centroid
-            labelPoint = points.centroid
-            labelPrint = re.sub(r'[A-Z()]', '', str(labelPoint))
-            labelSplit = labelPrint.split()
-
-            xmlGroundMapInfLabelPoint = xtree.SubElement(xmlGroundMapInfLabel, 'Point')
-            xmlGroundMapInfLabelPoint.set('Name', splitName[1])
-            xmlGroundMapInfLabelPoint.text = "+" + str(labelSplit[0]) + re.sub(r'-0\.', '-000.', labelSplit[1])
-
-        self.icao = icao
-
-        xmlGround = Xml.root('Ground')
-        xmlGroundMap = xtree.SubElement(xmlGround, 'Maps')
-
-        with open(fileIn) as fobj:
-            folder = parser.parse(fobj).getroot().Document
-
-        xmlGroundMapRwy = Xml.constructMapHeader(xmlGroundMap, 'Ground_RWY', self.icao + '_SMR_RWY', '1', '+510853.0-0001125.0')
-        xmlGroundMapTwy = Xml.constructMapHeader(xmlGroundMap, 'Ground_TWY', self.icao + '_SMR_TWY', '2', '+510853.0-0001125.0')
-        xmlGroundMapBld = Xml.constructMapHeader(xmlGroundMap, 'Ground_BLD', self.icao + '_SMR_BLD', '1', '+510853.0-0001125.0')
-        xmlGroundMapApr = Xml.constructMapHeader(xmlGroundMap, 'Ground_APR', self.icao + '_SMR_APR', '3', '+510853.0-0001125.0')
-        xmlGroundMapBak = Xml.constructMapHeader(xmlGroundMap, 'Ground_BAK', self.icao + '_SMR_BAK', '4', '+510853.0-0001125.0')
-        xmlGroundMapInf = Xml.constructMapHeader(xmlGroundMap, 'Ground_INF', self.icao + '_SMR_INF', '0', '+510853.0-0001125.0')
-        xmlGroundMapHld = Xml.constructMapHeader(xmlGroundMap, 'Ground_INF', self.icao + '_SMR_HLD', '0', '+510853.0-0001125.0')
-
-        xmlGroundMapInfLabel = xtree.SubElement(xmlGroundMapInf, 'Label')
-        xmlGroundMapInfLabel.set('HasLeader', 'False')
-        xmlGroundMapInfLabel.set('Alignment', 'Center')
-        xmlGroundMapInfLabel.set('VerticalAlignment', 'Middle')
-
-        for pm in folder.Placemark:
-            name = pm.name
-            splitName = str(name).split()
-            if splitName[0] == "Hold":
-                coords = pm.LineString.coordinates
-            else:
-                coords = pm.Polygon.outerBoundaryIs.LinearRing.coordinates
-
-            search = re.finditer(r'([+|-]{1})([\d]{1}\.[\d]{10,20}),([\d]{2}\.[\d]{10,20})', str(coords))
-            output = ''
-            latLonString = []
-            print(name)
-            for line in search:
-                fullLon = line.group().split(',')
-                output += "+" + str(line.group(3)) + str(line.group(1)) + "00" + str(line.group(2)) + "/"
-                latLonString.append((float(line.group(3)),float(fullLon[0])))
-
-            if splitName[0] == "Rwy":
-                xmlGroundInfill = xtree.SubElement(xmlGroundMapRwy, 'Infill')
-                mapLabels()
-            elif splitName[0] == "Twy":
-                xmlGroundInfill = xtree.SubElement(xmlGroundMapTwy, 'Infill')
-                mapLabels()
-            elif splitName[0] == "Bld":
-                xmlGroundInfill = xtree.SubElement(xmlGroundMapBld, 'Infill')
-            elif splitName[0] == "Apr":
-                xmlGroundInfill = xtree.SubElement(xmlGroundMapApr, 'Infill')
-            elif splitName[0] == "Bak":
-                xmlGroundInfill = xtree.SubElement(xmlGroundMapBak, 'Infill')
-            elif splitName[0] == "Hold":
-                xmlGroundInfill = xtree.SubElement(xmlGroundMapHld, 'Line')
-                mapLabels()
-
-            xmlGroundInfill.set('Name', name)
-            xmlGroundInfill.text = output.rstrip('/')
-
-        Builder.buildPrettyXml(xmlGround, 'Build/Maps/'+ self.icao + '_SMR.xml')
-
-class Navigraph:
-    def sidStar(file, icaoIn, rwyIn):
-        dfColumns=['ICAO','Runway','Name','Route']
-        df = pd.DataFrame(columns=dfColumns)
-        #print(df.to_string())
-        with open(file, 'r') as text:
-            content = text.read() # read everything
-            aerodromeData = re.split(r'\[', content) # split by [
-            for data in aerodromeData:
-                aerodromeIcao = re.search(r'([A-Z]{4})(\]\n)', data) # get the ICAO aerodrome designator
-                if aerodromeIcao:
-                    icao = aerodromeIcao.group(1)
-                    if icao == icaoIn:
-                        lineSearch = re.findall(r'(T[\s]+)([A-Z\d]{5,})([\s]+[A-Z\d]{5,}[\s]+)([\d]{2}[L|R|C]?)(\,.*)?\n', data)
-
-                        if lineSearch:
-                            for line in lineSearch:
-                                srdRunway = line[3]
-
-                                # for each SID, get the route
-                                routeSearch = re.findall(rf'^({line[1]})\s+([\dA-Z]{{3,5}})', data, re.M)
-
-                                if routeSearch:
-                                    concatRoute = ''
-                                    for route in routeSearch:
-                                        concatRoute += route[1] + "/"
-                                        routeName = route[0]
-
-                                    if line[4]:
-                                        starRunways = line[4].split(',')
-                                        for rwy in starRunways:
-                                            dfOut = {'ICAO': icao, 'Runway': rwy, 'Name': routeName, 'Route': concatRoute.rstrip('/')}
-                                            df = df.append(dfOut, ignore_index=True)
-
-                                    dfOut = {'ICAO': icao, 'Runway': srdRunway, 'Name': routeName, 'Route': concatRoute.rstrip('/')}
-                                    df = df.append(dfOut, ignore_index=True)
-
-            return df[(df.Runway == rwyIn)]
-
-class ValidateXml:
-    """docstring for ValidateXml."""
-
-    def __init__(self, schema):
-        with open(schema) as sFile:
-            self.schema = xmlschema.XMLSchema(sFile)
-
-    def validateDir(self, searchDir, matchFile):
-        with alive_bar() as bar:
-            for subdir, dirs, files in os.walk(searchDir):
-                for filename in files:
-                    filepath = subdir + os.sep + filename
-                    if fnmatch.fnmatch(filename, matchFile + '.xml'):
-                        bar()
-                        if self.schema.is_valid(filepath) is False:
-                            print(filepath)
-                            self.schema.validate(filepath)
-
-        print(Fore.GREEN + "    OK" + Style.RESET_ALL + " - All tests passed for " + searchDir + matchFile)
-
-    @staticmethod
-    def run():
-        # Validation of XML files with XSD schema
-        twrMap = ValidateXml("Validation/twrmap.xsd")
-        twrMap.validateDir("Build/Maps", "*TWR*")
-
-        airspace = ValidateXml("Validation/airspace.xsd")
-        airspace.validateDir("Build", "Airspace")
-
-        radar = ValidateXml("Validation/radars.xsd")
-        radar.validateDir("Build", "Radars")
-
-        sectors = ValidateXml("Validation/sectors.xsd")
-        sectors.validateDir("Build", "Sectors")
-
-        allMaps = ValidateXml("Validation/allmaps.xsd")
-        allMaps.validateDir("Build/Maps", "ALL_*")
-
-class EuroScope:
-    """tools to convert EuroScope bits to vatSys"""
-
-    def __init__(self, icao):
-        self.icao = icao
-        # get the location of this aerodrome
-        df = pd.read_csv('Dataframes/Ad01.csv', index_col=0)
-        dfLookup = df.loc[df['icao_designator'] == icao]
-        self.location = dfLookup.iat[0,2]
-
-    def kmlMappingConvert(self, fileIn, fileNumber):
-        def mapLabels():
-            # code to generate the map labels.
-            points = MultiPoint(latLonString) # function to calculate polygon centroid
-            labelPoint = points.centroid
-            labelPrint = re.sub(r'[A-Z()]', '', str(labelPoint))
-            labelSplit = labelPrint.split()
-
-            if labelSplit:
-                xmlGroundMapInfLabelPoint = xtree.SubElement(xmlGroundMapInfLabel, 'Point')
-                xmlGroundMapInfLabelPoint.set('Name', child)
-                if float(labelSplit[0]) > 0:
-                    dotSplit = str(labelSplit[0]).split(".")
-                    latPrint = "+" + str(dotSplit[0]).zfill(2) + "." + str(dotSplit[1])
-                else:
-                    dotSplit = str(labelSplit[0]).split(".")
-                    dotStart = str(dotSplit[0]).lstrip("-")
-                    latPrint = "-" + str(dotStart).zfill(2) + "." + str(dotSplit[1])
-
-                if float(labelSplit[1]) > 0:
-                    dotSplit = str(labelSplit[1]).split(".")
-                    lonPrint = "+" + str(dotSplit[0]).zfill(3) + "." + str(dotSplit[1])
-                else:
-                    dotSplit = str(labelSplit[1]).split(".")
-                    dotStart = str(dotSplit[0]).lstrip("-")
-                    lonPrint = "-" + str(dotStart).zfill(3) + "." + str(dotSplit[1])
-
-                xmlGroundMapInfLabelPoint.text = str(latPrint) + str(lonPrint)
-
-        xmlGround = Builder.root('Ground')
-        xmlGroundMap = xtree.SubElement(xmlGround, 'Maps')
-
-        with open(fileIn) as fobj:
-            folder = parser.parse(fobj).getroot().Document
-
-        xmlGroundMapRwy = Builder.constructMapHeader(xmlGroundMap, 'Ground_RWY', self.icao + '_SMR_RWY', '1', self.location)
-        xmlGroundMapTwy = Builder.constructMapHeader(xmlGroundMap, 'Ground_TWY', self.icao + '_SMR_TWY', '2', self.location)
-        xmlGroundMapBld = Builder.constructMapHeader(xmlGroundMap, 'Ground_BLD', self.icao + '_SMR_BLD', '1', self.location)
-        xmlGroundMapApr = Builder.constructMapHeader(xmlGroundMap, 'Ground_APR', self.icao + '_SMR_APR', '3', self.location)
-        xmlGroundMapBak = Builder.constructMapHeader(xmlGroundMap, 'Ground_BAK', self.icao + '_SMR_BAK', '4', self.location)
-        xmlGroundMapInf = Builder.constructMapHeader(xmlGroundMap, 'Ground_INF', self.icao + '_SMR_INF', '0', self.location)
-        xmlGroundMapHld = Builder.constructMapHeader(xmlGroundMap, 'Ground_INF', self.icao + '_SMR_HLD', '0', self.location)
-
-        xmlGroundMapInfLabel = xtree.SubElement(xmlGroundMapInf, 'Label')
-        xmlGroundMapInfLabel.set('HasLeader', 'False')
-        xmlGroundMapInfLabel.set('Alignment', 'Center')
-        xmlGroundMapInfLabel.set('VerticalAlignment', 'Middle')
-
-        try:
-            rootFolder = folder.Folder.Folder
-        except:
-            rootFolder = folder.Folder
-
-        for pm in rootFolder:
-            name = pm.name
-            print(" " + name)
-            titles = ["apron","aprons","asphalt","backround","backrounds","buildings","concrete","grass","ground","holding","holds","island","land","markings","new","parking","runway","runways","stand","stands","surface","taxi","taxilines","taxiway","taxiways","other"]
-            splitName = str(name).split()
-            if splitName[0].lower() in titles:
-                try:
-                    pmP = pm.Folder.Placemark
-                except:
-                    try:
-                        pmP = pm.Placemark
-                    except:
-                        pass
-
-                for place in pmP:
-                    try:
-                        coords = place.LineString.coordinates
-                    except:
-                        coords = place.Polygon.outerBoundaryIs.LinearRing.coordinates
-
-                    child = place.name
-                    print("  " + str(child))
-                    search = re.finditer(r'([+|-]?)([\d]{1,3})\.([\d]{10,20}),([+|-]?)([\d]{1,2})\.([\d]{10,20})', str(coords))
-                    output = ''
-                    latLonString = []
-
-                    for line in search:
-                        if line.group(1) == "-":
-                            lonSign = "-"
-                        else:
-                            lonSign = "+"
-
-                        if line.group(4) == "-":
-                            latSign = "-"
-                        else:
-                            latSign = "+"
-
-                        output += latSign + str(line.group(5)).zfill(2) + "." + str(line.group(6)) + lonSign + str(line.group(2)).zfill(3) + "." + str(line.group(3)) + "/"
-                        lineSplit = line.group().split(",")
-                        latLonString.append((float(lineSplit[1]),float(lineSplit[0])))
-
-                    if str(name).lower() == "runways" or str(name).lower() == "runway" or splitName[-1].lower() == "runways":
-                        xmlGroundInfill = xtree.SubElement(xmlGroundMapRwy, 'Infill')
-                        mapLabels()
-                        xmlGroundInfill.set('Name', child)
-                        xmlGroundInfill.text = output.rstrip('/')
-                    elif splitName[0].lower() == "taxiways" or splitName[0].lower() == "taxi" or splitName[0].lower() == "taxilines" or splitName[0].lower() == "taxiway" or splitName[-1].lower() == "taxiways":
-                        xmlGroundInfill = xtree.SubElement(xmlGroundMapTwy, 'Infill')
-                        mapLabels()
-                        xmlGroundInfill.set('Name', child)
-                        xmlGroundInfill.text = output.rstrip('/')
-                    elif splitName[0].lower() == "buildings":
-                        xmlGroundInfill = xtree.SubElement(xmlGroundMapBld, 'Infill')
-                        xmlGroundInfill.set('Name', child)
-                        xmlGroundInfill.text = output.rstrip('/')
-                    elif splitName[0].lower() == "aprons" or splitName[-1] == "aprons":
-                        xmlGroundInfill = xtree.SubElement(xmlGroundMapApr, 'Infill')
-                        xmlGroundInfill.set('Name', child)
-                        xmlGroundInfill.text = output.rstrip('/')
-                    elif splitName[0].lower() == "background" or splitName[0].lower() == "backgrounds":
-                        xmlGroundInfill = xtree.SubElement(xmlGroundMapBak, 'Infill')
-                        xmlGroundInfill.set('Name', child)
-                        xmlGroundInfill.text = output.rstrip('/')
-                    elif splitName[0].lower() == "surface" or splitName[0].lower() == "markings" or splitName[-1].lower() == "markings" or splitName[-1].lower() == "lines" or splitName[0].lower() == "hold" or splitName[0].lower() == "holding" or splitName[0].lower() == "holds" or splitName[0].lower() == "stand" or splitName[0].lower() == "stands":
-                        xmlGroundInfill = xtree.SubElement(xmlGroundMapHld, 'Line')
-                        mapLabels()
-                        xmlGroundInfill.set('Name', child)
-                        xmlGroundInfill.text = output.rstrip('/')
-
-        if str(fileNumber) == "1":
-            Builder.buildPrettyXml(xmlGround, 'Build/Maps/'+ self.icao + '/' + self.icao + '_SMR.xml')
-        else:
-            Builder.buildPrettyXml(xmlGround, 'KML/SMR/' + self.icao + '_' + str(fileNumber) + '_SMR.xml')
-
-    @staticmethod
-    def parse(fileIn):
-        dfColumns = ['sectorline','coords']
-        df = pd.DataFrame(columns=dfColumns)
-        file = open(fileIn, "r")
-        #fileWrite = open('Testing/out.txt', "w")
-        c = ''
-        for f in file:
-            coord = re.search(r"(N|S)([\d]{3})\.([\d]{2})\.([\d]{2})(\.[\d]{3})[\s|:](E|W)([\d]{3})\.([\d]{2})\.([\d]{2})(\.[\d]{3})", f)
-            line = re.search(r"(SECTORLINE):(.*)", f)
-            if coord:
-                latSign = Geo.plusMinus(coord.group(1))
-                lonSign = Geo.plusMinus(coord.group(6))
-
-                output = latSign + coord.group(2).lstrip("0") + coord.group(3) + coord.group(4)  + coord.group(5) + lonSign + coord.group(7) + coord.group(8) + coord.group(9)  + coord.group(10)
-                c += output + '/'
-            elif line:
-                lineOut = line.group(2)
-            elif f == "\n":
-                dfOut = {'sectorline': lineOut, 'coords': c.rstrip('/')}
-                df = df.append(dfOut, ignore_index=True)
-                c = ''
-
-        print(df)
-        df.to_csv('Dataframes/ES-SectorLines.csv')
-
-    @staticmethod
-    def iterFolders(src, dst):
-        for subdir, dirs, files in os.walk(rf'{src}'):
-            c = 0
-            for filename in files:
-                filepath = subdir + os.sep + filename
-                if filepath.endswith(".kmz"):
-                    splitPath = subdir.split('/')
-                    splitName = filename.split('.')
-                    if re.match(r'(EG)[A-Z]{2}', splitPath[-1]) is not None:
-                        c += 1
-                        copyDst = dst + splitPath[-1] + "_" + str(c) + '.zip'
-                        shutil.copyfile(filepath, copyDst)
-                        with zipfile.ZipFile(copyDst, 'r') as zip:
-                            print(splitPath[-1])
-                            zip.extractall(dst)
-                            shutil.copyfile(dst + 'doc.kml', dst + splitPath[-1] + "_" + str(c) + '.kml')
-                            try:
-                                convert = EuroScope(splitPath[-1])
-                                kmlFileIn = dst + splitPath[-1] + "_" + str(c) + '.kml'
-                                convert.kmlMappingConvert(kmlFileIn, c)
-                            except:
-                                print("ERROR: " + splitPath[-1])
-
-# Defuse XML
-defuse_stdlib()
-
 # Build command line argument parser
-cmdParse = argparse.ArgumentParser(description="Application to collect data from an AIRAC source and build that into xml files for use with vatSys.")
+cmdParse = argparse.ArgumentParser(description="Application to collect data from an AIRAC source and build that into sct files for use on POSCON")
 cmdParse.add_argument('-s', '--scrape', help='web scrape and build xml files', action='store_true')
 cmdParse.add_argument('-b', '--build', help='build xml file from database', action='store_true')
-cmdParse.add_argument('-g', '--geo', help='tool to assist with converting airport mapping from ES', action='store_true')
-cmdParse.add_argument('-d', '--debug', help='runs the code defined in the debug section [DEV ONLY]', action='store_true')
+cmdParse.add_argument('-g', '--geo', help='NoOp', action='store_true')
+cmdParse.add_argument('-d', '--debug', help='NoOp', action='store_true')
 cmdParse.add_argument('-v', '--verbose', action='store_true')
 args = cmdParse.parse_args()
 
 if args.geo:
-    EuroScope.iterFolders(f'{work_dir}\\_data\\SMR Files\\', f'{work_dir}\\KML\\ZIP\\')
+    pass
 elif args.debug:
-    EuroScope.parse(f'{work_dir}\\Sectors\\Combined.txt')
+    pass
 elif args.scrape:
     shutil.rmtree(f'{work_dir}\\Build')
     os.mkdir(f'{work_dir}\\Build')
@@ -1402,4 +1197,5 @@ elif args.build:
     new.run()
 else:
     new = Webscrape()
-    new.parse_enr02_data()
+    new.parse_enr021_data()
+    new.parse_enr022_data()
