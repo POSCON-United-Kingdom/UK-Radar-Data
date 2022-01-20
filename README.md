@@ -2,7 +2,7 @@
 ## UK Radar Data
 This repository contains FIR data for use on the POSCON network covering London, Scottish and Swanwick Sectors. The completed SCT file for the United Kingdom FIR is EGxx_FIR.sct.
 
-### Manual Edits
+### References
  - [Configuring a Sector File](https://forums.poscon.net/docs/support/manuals/eram/general/#section-595)
  - [SCT2 File Format](https://vrc.rosscarlson.dev/docs/doc.php?page=appendix_f)
  - [Sector File Formatting](https://vrc.rosscarlson.dev/docs/doc.php?page=appendix_g)
