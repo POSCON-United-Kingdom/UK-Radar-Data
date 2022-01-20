@@ -2,6 +2,11 @@
 ## UK Radar Data
 This repository contains FIR data for use on the POSCON network covering London, Scottish and Swanwick Sectors. The completed SCT file for the United Kingdom FIR is EGxx_FIR.sct.
 
+### Manual Edits
+ - [Configuring a Sector File](https://forums.poscon.net/docs/support/manuals/eram/general/#section-595)
+ - [SCT2 File Format](https://vrc.rosscarlson.dev/docs/doc.php?page=appendix_f)
+ - [Sector File Formatting](https://vrc.rosscarlson.dev/docs/doc.php?page=appendix_g)
+
 ### Folder Structure
  - AirfieldGeoJson
 	 - Contains a GeoJSON file for every aerodrome in the [UK eAIP](https://nats-uk.ead-it.com/cms-nats/opencms/en/Publications/AIP/). In their base format, these files are a pure scrape from [OpenStreetMap](https://www.openstreetmap.org/) using the [Overpass Turbo](https://overpass-turbo.eu/) API.
