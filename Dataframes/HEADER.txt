@@ -31,3 +31,6 @@
 #define Runway 16777215
 #define CenterLine 16777215
 #define Land 5324604
+#define EGSCTaxiwayStands 65535
+#define EGSCHoldingPoint 255
+#define Grassway 6919785
