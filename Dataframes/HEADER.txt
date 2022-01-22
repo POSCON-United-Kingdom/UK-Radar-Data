@@ -1,6 +1,9 @@
 ; EGTT EGPX EGGX
 ; File updated {DATE}
-; By: Chris Parkinson
+; By:
+;   @shiftyghost#5406
+;   @flippo#8739
+;   @Demo Guy#4275
 
 #define Black 4209979
 #define Maroon 128
@@ -19,3 +22,12 @@
 #define White 16777215
 #define COLOR_BORDERS 14145495
 #define COLOR_COASTLINE 16750230
+#define EGSSTaxiwayStands 65535
+#define EGSSHoldingPoint 255
+#define Navy 8388608
+#define GroundLayout 8421504
+#define GrassLand 32768
+#define AirportOutline 32896
+#define Runway 16777215
+#define CenterLine 16777215
+#define Land 5324604

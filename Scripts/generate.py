@@ -947,6 +947,63 @@ class Builder:
         """Build the SCT file"""
         sct_file = "Build/EGxx_FIR.sct"
 
+        def custom_list(file, file_type):
+            """modify UK_AIRFIELDS.txt to use custom built sector files where available"""
+
+            custom_airfields = ["EGSS"]
+            ignore_line = True
+            label_match = False
+            if file_type == "GEO": # GEO (not REGIONS)
+                search_string = r"\[GEO\]"
+            elif file_type == "FREETEXT":
+                search_string = r"\[FREETEXT\]"
+            elif file_type == "REGIONS":
+                search_string = r"\[REGIONS\]"
+            else:
+                raise ValueError(f"{file_type} has not been recognised")
+            # strip out any references to the the scraped data
+            with open(file) as original_file:
+                for line in original_file:
+                    if (file_type == "GEO") or (file_type == "FREETEXT"):
+                        if not any(custom_airfields in line for custom_airfields in custom_airfields):
+                            with open(sct_file, 'a') as write_sct_file:
+                                write_sct_file.write(line)
+                    elif file_type == "REGIONS":
+                        if not label_match: # if we're looking for a matching line, print the line
+                            for airfield in custom_airfields:
+                                if re.match(airfield, line):
+                                    label_match = True
+                            if not label_match: # if the line doesn't match the search string then print the line
+                                with open(sct_file, 'a') as write_sct_file:
+                                    write_sct_file.write(line)
+                        elif label_match:
+                            counter = 0
+                            if re.match(r"A\-", line):
+                                for airfield in custom_airfields:
+                                    if not re.match(airfield, line):
+                                        counter += 1
+                                if counter == len(custom_airfields):
+                                    label_match = False
+         
+            # insert the new data
+            print_line = True
+            label_match = False
+            for airfield in custom_airfields:
+                custom_file = f"CustomAirfields\\{airfield}.sct"
+                with open(custom_file) as c_file:
+                    for line in c_file:
+                        if not label_match and print_line:
+                            if re.match(search_string, line): # once we get to the 'GEO' tag
+                                label_match = True
+                        elif label_match and print_line:
+                            with open(sct_file, 'a') as write_sct_file:
+                                if re.match(r"\[.*\]", line): # stop whenever we get to the next tag
+                                    write_sct_file.write("\n\n")
+                                    print_line = False
+                                else:
+                                    write_sct_file.write(line)
+
+
         def sct_writer(filename):
             """Write to SCT file"""        
             with open(sct_file, 'a') as write_sct_file:
@@ -1102,13 +1159,13 @@ class Builder:
         # UK Airfields
         with open(sct_file, 'a') as write_sct_file:
             write_sct_file.write('\nRANGE 0 20\n')
-        sct_writer('Airfields/UK_AIRFIELDS.txt')
+        custom_list('Airfields/UK_AIRFIELDS.txt', 'GEO')
 
         # REGIONS section
         with open(sct_file, 'a') as write_sct_file:
             write_sct_file.write('[REGIONS]\nRANGE 0 20\n')
         # UK Airfields
-        sct_writer('Airfields/UK_AIRFIELD_REGIONS.txt')
+        custom_list('Airfields/UK_AIRFIELD_REGIONS.txt', 'REGIONS')
 
         # FREETEXT (labels) section
         with open(sct_file, 'a') as write_sct_file:
@@ -1126,7 +1183,7 @@ class Builder:
         # AIRFIELD labels
         with open(sct_file, 'a') as write_sct_file:
             write_sct_file.write(';Airfield Labels\nRANGE:0:5\n')
-        sct_writer('Airfields/UK_AIRFIELD_LABELS.txt')
+        custom_list('Airfields/UK_AIRFIELD_LABELS.txt', 'FREETEXT')
 
         # POSITIONS section <name of position>:<radio callsign>:<frequency>:<identifier>:<middle letter>:<prefix>:<suffix>:<not used>:<not used>:<A code start of range>:<A code end of range>[:<VIS center1 latitude>:<VIS center1 longitude>[: ... ]]
         """
@@ -1141,7 +1198,7 @@ class Builder:
             There can be maximum 4 visibility centers defined (that is altogether 8 optional elements in the line)
         """
         with open(sct_file, 'a') as write_sct_file:
-            write_sct_file.write('[POSITIONS]\n')
+            write_sct_file.write('\n\n[POSITIONS]\n')
             list_positions = ["APPROACH", "GROUND", "DELIVERY", "TOWER", "DIRECTOR", "RADIO", "RADAR"] # don't include INFORMATION as this is a non-controlled automatic position
             df = self.scrape[0]
             df_filter = df.loc[df['verified'] == 1]
