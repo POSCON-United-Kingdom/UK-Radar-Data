@@ -295,7 +295,7 @@ class Webscrape:
 
     def parse_enr021_data(self): # re-write of this section has been completed
         """This will parse ENR 2 data from the given AIP"""
-        dfColumns = ['name', 'callsign', 'frequency', 'boundary', 'upper_fl', 'lower_fl']
+        dfColumns = ['name', 'callsign', 'frequency', 'boundary', 'upper_fl', 'lower_fl', 'class']
         df_fir = pd.DataFrame(columns=dfColumns)
         df_uir = pd.DataFrame(columns=dfColumns)
         df_cta = pd.DataFrame(columns=dfColumns)
@@ -316,6 +316,9 @@ class Webscrape:
         loop_coord = False
         first_callsign = False
         first_freq = False
+        upper_limit_out = "000"
+        lower_limit_out = "000"
+        airspace_class_out = "E"
         with alive_bar(barLength) as bar: # Define the progress bar
             while row < barLength:
                 # find an airspace
@@ -324,6 +327,9 @@ class Webscrape:
                 callsign = re.search(r"TUNIT;TXT_NAME", str(searchData[row]))
                 freq = re.search(r"TFREQUENCY;VAL_FREQ_TRANS", str(searchData[row]))
                 arc = re.search(r"TAIRSPACE_VERTEX;VAL_RADIUS_ARC", str(searchData[row]))
+                airspace_class = re.search(r"TAIRSPACE_LAYER_CLASS;CODE_CLASS", str(searchData[row]))
+                upper_limit = re.search(r"TAIRSPACE_VOLUME;VAL_DIST_VER_UPPER", str(searchData[row]))
+                lower_limit = re.search(r"TAIRSPACE_VOLUME;VAL_DIST_VER_LOWER", str(searchData[row]))
 
                 if title:
                     # get the printed title
@@ -341,6 +347,24 @@ class Webscrape:
                     if print_callsign:
                         callsign_out = print_callsign.group(1)
                         first_callsign = True
+
+                if airspace_class:
+                    # get airspace class
+                    print_class = re.search(r"\>(.*)\<", str(searchData[row-1]))
+                    if print_class:
+                        airspace_class_out = print_class.group(1)
+                
+                if upper_limit:
+                    # get airspace upper limit
+                    print_ul = re.search(r"\>(.*)\<", str(searchData[row-1]))
+                    if print_ul:
+                        upper_limit_out = print_ul.group(1)
+
+                if lower_limit:
+                    # get airspace lower limit
+                    print_ll = re.search(r"\>(.*)\<", str(searchData[row-1]))
+                    if print_ll:
+                        lower_limit_out = print_ll.group(1)
                 
                 if (freq) and (first_freq is False):
                     # get the first (and only the first) printed callsign
@@ -415,14 +439,15 @@ class Webscrape:
                         space.append(print_coord[0])
  
                 if (loop_coord) and (space != []):
-                    def coord_to_table(last_df_in_title, callsign_out, frequency, output):
+                    def coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit, lower_limit, airspace_class):
                         df_out = {
                             'name': last_df_in_title,
                             'callsign': callsign_out,
                             'frequency': str(frequency),
                             'boundary': str(output),
-                            'upper_fl': '000',
-                            'lower_fl': '000'
+                            'upper_fl': str(upper_limit),
+                            'lower_fl': str(lower_limit),
+                            'class': str(airspace_class)
                             }
                         return df_out
                     
@@ -430,7 +455,7 @@ class Webscrape:
                     if airspace:
                         # for FIRs do this
                         if last_airspace.group(1) == "FIR":
-                            df_fir_out = coord_to_table(last_df_in_title, callsign_out, frequency, output)
+                            df_fir_out = coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit_out, lower_limit_out, airspace_class_out)
                             df_fir = df_fir.append(df_fir_out, ignore_index=True)
                         # for UIRs do this - same extent as FIR
                         #if last_airspace.group(1) == "UIR":
@@ -438,10 +463,10 @@ class Webscrape:
                         #    df_uir = df_uir.append(df_uir_out, ignore_index=True)
                         # for CTAs do this
                         if last_airspace.group(1) == "CTA":
-                            df_cta_out = coord_to_table(last_df_in_title, callsign_out, frequency, output)
+                            df_cta_out = coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit_out, lower_limit_out, airspace_class_out)
                             df_cta = df_cta.append(df_cta_out, ignore_index=True)
                         if last_airspace.group(1) == "TMA":
-                            df_tma_out = coord_to_table(last_df_in_title, callsign_out, frequency, output)
+                            df_tma_out = coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit_out, lower_limit_out, airspace_class_out)
                             df_tma = df_tma.append(df_tma_out, ignore_index=True)
                         space = []
                         loop_coord = True
@@ -458,7 +483,7 @@ class Webscrape:
 
     def parse_enr022_data(self): # re-write of this section has been completed
         """This will parse ENR 2.2 data from the given AIP"""
-        dfColumns = ['name', 'callsign', 'frequency', 'boundary', 'upper_fl', 'lower_fl']
+        dfColumns = ['name', 'callsign', 'frequency', 'boundary', 'upper_fl', 'lower_fl', 'class']
         df_atz = pd.DataFrame(columns=dfColumns)
 
         print("Parsing "+ self.country +"-ENR-2.2 Data (OTHER REGULATED AIRSPACE)...")
@@ -477,6 +502,9 @@ class Webscrape:
         loop_coord = False
         first_callsign = False
         first_freq = False
+        upper_limit_out = "000"
+        lower_limit_out = "000"
+        airspace_class_out = "E"
         with alive_bar(barLength) as bar: # Define the progress bar
             while row < barLength:
                 # find an airspace
@@ -485,6 +513,9 @@ class Webscrape:
                 callsign = re.search(r"TUNIT;TXT_NAME", str(searchData[row]))
                 freq = re.search(r"TFREQUENCY;VAL_FREQ_TRANS", str(searchData[row]))
                 arc = re.search(r"TAIRSPACE_VERTEX;VAL_RADIUS_ARC", str(searchData[row]))
+                airspace_class = re.search(r"TAIRSPACE_LAYER_CLASS;CODE_CLASS", str(searchData[row]))
+                upper_limit = re.search(r"TAIRSPACE_VOLUME;VAL_DIST_VER_UPPER", str(searchData[row]))
+                lower_limit = re.search(r"TAIRSPACE_VOLUME;VAL_DIST_VER_LOWER", str(searchData[row]))
 
                 if title:
                     # get the printed title
@@ -509,6 +540,24 @@ class Webscrape:
                     if print_frequency:
                         frequency = print_frequency.group(1)
                         first_freq = True
+                
+                if airspace_class:
+                    # get airspace class
+                    print_class = re.search(r"\>(.*)\<", str(searchData[row-1]))
+                    if print_class:
+                        airspace_class_out = print_class.group(1)
+                
+                if upper_limit:
+                    # get airspace upper limit
+                    print_ul = re.search(r"\>(.*)\<", str(searchData[row-1]))
+                    if print_ul:
+                        upper_limit_out = print_ul.group(1)
+
+                if lower_limit:
+                    # get airspace lower limit
+                    print_ll = re.search(r"\>(.*)\<", str(searchData[row-1]))
+                    if print_ll:
+                        lower_limit_out = print_ll.group(1)
 
                 if arc: # what to do if an arc is found
                     # check to see if this a series, if so then increment the counter
@@ -586,14 +635,15 @@ class Webscrape:
                         space.append(print_coord[0])
  
                 if (loop_coord) and (space != []) and (first_callsign is True) and (first_freq is True):
-                    def coord_to_table(last_df_in_title, callsign_out, frequency, output):
+                    def coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit_out, lower_limit_out, airspace_class_out):
                         df_out = {
                             'name': last_df_in_title,
                             'callsign': callsign_out,
                             'frequency': str(frequency),
                             'boundary': str(output),
-                            'upper_fl': '000',
-                            'lower_fl': '000'
+                            'upper_fl': str(upper_limit_out),
+                            'lower_fl': str(lower_limit_out),
+                            'class': airspace_class_out
                             }
                         return df_out
                     
@@ -601,7 +651,7 @@ class Webscrape:
                     if airspace:
                         # for ATZs do this
                         if last_airspace.group(1) == "ATZ":
-                            df_atz_out = coord_to_table(last_df_in_title, callsign_out, frequency, output)
+                            df_atz_out = coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit_out, lower_limit_out, airspace_class_out)
                             df_atz = df_atz.append(df_atz_out, ignore_index=True)
                         space = []
                         loop_coord = True
