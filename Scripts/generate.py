@@ -387,7 +387,7 @@ class Webscrape:
                                 count_back += 1
                             
                             # work forward to find the centre point and end lat/lon
-                            if (cacw == 2) or (cacw == 2):
+                            if (cacw == 1) or (cacw == 2):
                                 count_forward = 1
                                 end_lat = None
                                 end_lon = None
@@ -408,7 +408,7 @@ class Webscrape:
                             
                             # convert from dms to dd
                             start_dd = self.dms2dd(start_lat[1], start_lon[1], start_lat[2], start_lon[2])
-                            if (cacw == 2) or (cacw == 2):
+                            if (cacw == 1) or (cacw == 2):
                                 mid_dd = self.dms2dd(mid_lat[1], mid_lon[1], mid_lat[2], mid_lon[2])
                                 end_dd = self.dms2dd(end_lat[1], end_lon[1], end_lat[2], end_lon[2])
                             elif cacw == 3:
@@ -819,7 +819,7 @@ class Webscrape:
                     
                     # convert from dms to dd
                     start_dd = self.dms2dd(start_lat[1], start_lon[1], start_lat[2], start_lon[2])
-                    if (cacw == 2) or (cacw == 2):
+                    if (cacw == 1) or (cacw == 2):
                         mid_dd = self.dms2dd(mid_lat[1], mid_lon[1], mid_lat[2], mid_lon[2])
                         end_dd = self.dms2dd(end_lat[1], end_lon[1], end_lat[2], end_lon[2])
                     elif cacw == 3:
