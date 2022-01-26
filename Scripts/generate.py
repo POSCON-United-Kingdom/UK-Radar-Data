@@ -871,6 +871,90 @@ class Webscrape:
                 row += 1
         return df_atz
 
+    def acc_uac_control_sectors(self):
+        xlsx_file = f"{work_dir}\\ACC_UAC_Sectors.csv"
+        part_number = False
+
+        dfColumns = ['name', 'boundary']
+        df = pd.DataFrame(columns=dfColumns)
+
+        def wrangler(data, sector, df):
+            """sorts out all of the random coords into something useful"""
+            latlon = ""
+            if data != "":
+                pair = re.findall(r"([0-9]{6})([N|S])[\,\s\.\n]?([0-9]{7})([E|W])", data)
+                for p in pair:
+                    lat = p[0]
+                    lon = p[2]
+                    ns = p[1]
+                    ew = p[3]
+                    q = self.sct_location_builder(lat, lon, ns, ew)
+                    latlon = f"{latlon}/{q}"
+                latlon = latlon.lstrip("/")
+                dfOut = {'name': str(sector), 'boundary': str(latlon)}
+                print(dfOut)
+                return dfOut
+
+        coord_full = ""
+        area = False
+        sector = False
+        with open(xlsx_file) as read_file:
+            for line in read_file:
+                split_line = line.split(',')
+                area_name = re.match(r"[A-Z]{3,}\sAC", line) # area name
+                sector_name = re.match(r"[A-Z]{3,}", split_line[0]) # sector name
+                sector_number = re.match(r"[0-9]{1,2}\,\,", line) # sector name
+                if len(split_line) > 3:
+                    part_number = re.match(r"[0-9]{1}", split_line[2]) # get sector part number
+                    upper_fl = re.match(r"[FL\s]{2,4}[\d\s]{1,5}", split_line[3]) # get upper flight level
+                    if not upper_fl:
+                        upper_fl = re.match(r"[FL\s]{2,4}[\d\s]{2,5}", split_line[0]) # get upper flight level
+                # find area name
+                if area_name:
+                    dfOut = wrangler(coord_full, area, df)
+                    df = df.append(dfOut, ignore_index=True)
+                    coord_full = ""
+                    area = split_line[0]
+                elif sector_name or sector_number:
+                    # sector name or number
+                    if part_number:
+                        dfOut = wrangler(coord_full, sector, df)
+                        df = df.append(dfOut, ignore_index=True)
+                        coord_full = ""
+                        sector = f"{area} {split_line[0]} {part_number[0]}"
+                    else:
+                        sector = f"{area} {split_line[0]}"
+                    
+                    if upper_fl:
+                        print_txt = split_line[3].replace(" ", "")
+                        #print(f"\t\t{print_txt}")
+                elif upper_fl:
+                    print_txt = upper_fl[0].replace(" ", "")
+                    #print(f"\t\t{print_txt}")
+                
+                for splt in split_line:
+                    clear_spaces = splt.replace(" ", "").replace("O", "0").replace("l", "1").replace("I", "1")
+                    with open("out.txt", "a") as file:
+                        file.write(clear_spaces)
+                    nav = re.findall(r"[0-9OlIi]{5,8}[\-]?[N|S|E|W]", clear_spaces)
+                    for coord in nav:
+                        ns_check = re.match(r"[0-9]{6}[N|S]", coord)
+                        we_check = re.match(r"[0-9]{7}[W|E]", coord)
+                        if (not ns_check) and (not we_check):
+                            ns_check_s2 = re.search(r"([0-9]{5})([N|S])", coord)
+                            ew_check_s2 = re.search(r"([0-9]{6})([W|E])", coord)
+                            ew_check_s3 = re.search(r"([0-9]{5})([W|E])", coord)
+                            if ns_check_s2:
+                                coord = f"{ns_check_s2[0]}0{ns_check_s2[1]}"
+                            elif ew_check_s2:
+                                coord = f"{ew_check_s2[0]}0{ew_check_s2[1]}"
+                            elif ew_check_s3:
+                                coord = f"{ew_check_s3[0]}00{ew_check_s3[1]}"
+                            else:
+                                coord = input(f"Error spotted with {coord}, please enter correct value: ")
+                        coord_full = f"{coord_full} {coord}"
+
+        return df
 
     def parse_enr03_data(self, section):
         dfColumns = ['name', 'route']
@@ -981,16 +1065,17 @@ class Webscrape:
         full_dir = f"{work_dir}\\DataFrames\\"
         Ad01 = self.parse_ad01_data() # returns single dataframe
         Ad02 = self.parse_ad02_data(Ad01) # returns dfAd01, df_rwy, df_srv
-        Ad0217 = self.parse_ad0217_data(Ad01) # returns ats airspace
+        Ad0217 = self.parse_ad0217_data(Ad01) # returns single dataframe
         Enr016 = self.parse_enr016_data(Ad01) # returns single dataframe
         Enr021 = self.parse_enr021_data() # returns dfFir, dfUir, dfCta, dfTma
-        Enr022 = self.parse_enr022_data() # returns dfatz
+        Enr022 = self.parse_enr022_data() # returns single dataframe
         Enr031 = self.parse_enr03_data('1') # returns single dataframe
         Enr033 = self.parse_enr03_data('3') # returns single dataframe
         Enr035 = self.parse_enr03_data('5') # returns single dataframe
         Enr041 = self.parse_enr04_data('1') # returns single dataframe
         Enr044 = self.parse_enr04_data('4') # returns single dataframe
         Enr051 = self.parse_enr051_data() # returns single dataframe
+        AccUac = self.acc_uac_control_sectors() # returns single dataframe
 
         Ad01.to_csv(f'{full_dir}Ad01.csv')
         Ad02[1].to_csv(f'{full_dir}Ad02-Runways.csv')
@@ -1008,6 +1093,7 @@ class Webscrape:
         Enr041.to_csv(f'{full_dir}Enr041.csv')
         Enr044.to_csv(f'{full_dir}Enr044.csv')
         Enr051.to_csv(f'{full_dir}Enr051.csv')
+        AccUac.to_csv(f'{full_dir}AccUac.csv')
 
         return [Ad01, Ad02, Enr016, Enr021, Enr022, Enr031, Enr033, Enr035, Enr041, Enr044, Enr051]
 
@@ -1197,6 +1283,7 @@ class Builder:
             scrape.append(pd.read_csv('DataFrames/Enr044.csv', index_col=0))        #13
             scrape.append(pd.read_csv('DataFrames/Enr051.csv', index_col=0))        #14
             scrape.append(pd.read_csv('Dataframes/Ad0217-ATS-Airspace.csv', index_col=0)) #15
+            scrape.append(pd.read_csv('DataFrames/AccUac.csv', index_col=0))        #16
             self.scrape = scrape
         else:
             initWebscrape = Webscrape()
@@ -1361,6 +1448,7 @@ class Builder:
         # ARTCC HIGH section TMA
         print("Adding ARTCC HIGH...")
         build_artcc(7, "ARTCC HIGH", "100", "3000")
+        build_artcc(16, "ARTCC HIGH", "100", "3000")
 
         # ARTCC LOW section CTA
         print("Adding ARTCC LOW...")
@@ -1530,6 +1618,6 @@ elif args.build:
     new.run()
 else:
     new = Webscrape()
-    dfAd01 = new.parse_ad01_data()
-    output = new.parse_ad0217_data(dfAd01)
-    print(output)
+    full_dir = f"{work_dir}\\DataFrames\\"
+    AccUac = new.acc_uac_control_sectors() # returns single dataframe
+    AccUac.to_csv(f'{full_dir}AccUac.csv')
