@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
+from asyncore import loop
 import math
 import datetime
 import argparse
+from pkgutil import get_data
 import shutil
+from webbrowser import get
+from numpy import fft
 import urllib3
 import argparse
 import requests
@@ -16,6 +20,16 @@ from colorama import Fore, Style
 from alive_progress import alive_bar
 
 work_dir = os.getcwd()
+
+# pandas init
+dfColumns = ['name', 'callsign', 'frequency', 'boundary', 'upper_fl', 'lower_fl', 'class']
+df_fir = pd.DataFrame(columns=dfColumns)
+df_uir = pd.DataFrame(columns=dfColumns)
+df_cta = pd.DataFrame(columns=dfColumns)
+df_tma = pd.DataFrame(columns=dfColumns)
+df_ctr = pd.DataFrame(columns=dfColumns)
+df_atz = pd.DataFrame(columns=dfColumns)
+dfEnr05 = pd.DataFrame(columns=dfColumns)
 
 class Airac:
     """Class for general functions relating to AIRAC"""
@@ -85,7 +99,7 @@ class Webscrape:
         page = requests.get(address)
         return BeautifulSoup(page.content, "lxml")
     
-    def cw_acw_helper(self, data_in, output_title):
+    def cw_acw_helper(self, data_in, output_title, load=0):
         """creates a list of complex airspace areas with the direction of the arc for reference later on"""
         dfColumns = ['area', 'number', 'direction']
         complex_areas = pd.DataFrame(columns=dfColumns)
@@ -106,9 +120,12 @@ class Webscrape:
                         area_number += 1
                     row += 1
             row += 1
-        complex_areas.to_csv(f'{work_dir}\\DataFrames\{output_title}-CW-ACW-Helper.csv')
+        if load == 1:
+            return complex_areas
+        else:
+            complex_areas.to_csv(f'{work_dir}\\DataFrames\{output_title}-CW-ACW-Helper.csv')
     
-    def circle_helper(self, data_in, output_title):
+    def circle_helper(self, data_in, output_title, load=0):
         """creates a list of complex airspace areas with the direction of the arc for reference later on"""
         dfColumns = ['area', 'number', 'direction']
         complex_areas = pd.DataFrame(columns=dfColumns)
@@ -125,7 +142,236 @@ class Webscrape:
                     complex_areas = complex_areas.append(ca_out, ignore_index=True)
                     row += 1
             row += 1
-        complex_areas.to_csv(f'{work_dir}\\DataFrames\{output_title}-Circle-Helper.csv')
+        if load == 1:
+            return complex_areas
+        else:
+            complex_areas.to_csv(f'{work_dir}\\DataFrames\{output_title}-Circle-Helper.csv')
+
+    def airspace_parser(self, getData, ad217=0, df_fir=df_fir, df_uir=df_uir, df_cta=df_cta, df_tma=df_tma, df_ctr=df_ctr, df_atz=df_atz, df_danger=dfEnr05):
+        """parse the airspace data from the given page"""
+        # scrape all the data and chuck it in an array
+        data_out = []
+        searchData = getData.find_all("tr")
+        for line in searchData:
+            for l in line.stripped_strings:
+                data_out.append(l)
+
+        # define some bits
+        stopstopstop = 0
+        df_atz_out = False
+        airspace = False
+        danger = False
+        row = 0
+        last_arc_title = False
+        arc_counter = 0
+        space = []
+        loop_coord = False
+        first_callsign = False
+        first_freq = False
+        frequency = "000.000"
+        upper_limit_out = "000"
+        lower_limit_out = "000"
+        airspace_class_out = "E"
+        count = 0
+
+        # actually do something with the data
+        while (count < len(data_out) and (stopstopstop == 0)):
+            data_to_wrangle = data_out[count]
+            title = re.search(r"TAIRSPACE;TXT_NAME", str(data_to_wrangle))
+            danger_area = re.search(r"TAIRSPACE;CODE_ID", str(data_to_wrangle))
+            coords = re.search(r"(?:TAIRSPACE_VERTEX;GEO_L(?:AT|ONG);)([\d]{4})", str(data_to_wrangle))
+            callsign = re.search(r"TUNIT;TXT_NAME", str(data_to_wrangle))
+            freq = re.search(r"TFREQUENCY;VAL_FREQ_TRANS", str(data_to_wrangle))
+            arc = re.search(r"TAIRSPACE_VERTEX;VAL_RADIUS_ARC", str(data_to_wrangle))
+            lat_arc = re.search(r"TAIRSPACE_VERTEX;GEO_LAT_ARC", str(data_to_wrangle))
+            lon_arc = re.search(r"TAIRSPACE_VERTEX;GEO_LONG_ARC", str(data_to_wrangle))
+            airspace_class = re.search(r"TAIRSPACE_LAYER_CLASS;CODE_CLASS", str(data_to_wrangle))
+            upper_limit = re.search(r"TAIRSPACE_VOLUME;VAL_DIST_VER_UPPER", str(data_to_wrangle))
+            lower_limit = re.search(r"TAIRSPACE_VOLUME;VAL_DIST_VER_LOWER", str(data_to_wrangle))
+
+            if title:
+                # get the printed title
+                print_title = str(data_out[count-1])
+                airspace = re.search(r"(FIR|UIR|CTA|TMA|CTR|ATZ|RMZ)", str(data_out[row-1]))
+                if airspace:
+                    df_in_title = print_title
+                loop_coord = True
+
+            if danger_area and (stopstopstop == 0):
+                # get the danger area code
+                dac_d_p_r = re.search(r"(EG\s[D|P|R]{1}[\d]{3}[A-Z]*)", str(data_out[row-1]))
+                print(dac_d_p_r)
+                dac_ru = re.search(r"(EG\sRU[\d]{3}[A-Z]*)", str(data_out[row-1]))
+                print(dac_ru)
+                if dac_ru:
+                    stopstopstop = 1
+                if dac_d_p_r:
+                    airspace = dac_d_p_r
+                    danger = True
+                    danger_title = str(data_out[count+1])
+                    loop_coord = True
+
+            if (callsign) and (first_callsign is False):
+                # get the first (and only the first) printed callsign
+                callsign_out = str(data_out[count-1])
+                first_callsign = True
+
+            if airspace_class:
+                # get airspace class
+                airspace_class_out = str(data_out[count-1])
+            
+            if upper_limit:
+                # get airspace upper limit
+                upper_limit_out = str(data_out[count-1])
+
+            if lower_limit:
+                # get airspace lower limit
+                lower_limit_out = str(data_out[count-1])
+            
+            if (freq) and (first_freq is False):
+                # get the first (and only the first) printed callsign
+                frequency = str(data_out[count-1])
+                first_freq = True
+
+            if arc: # what to do if an arc is found
+                # check to see if this a series, if so then increment the counter
+                if print_title == str(last_arc_title):
+                    arc_counter += 0
+                else:
+                    arc_counter == 0
+
+                # circle, clockwise or anti-clockwise arc?
+                circle = re.search(r"^[A|a]\sradius\,\scentred\sat", data_out[count-2])
+                circle2 = re.search(r"^[A|a]\scircle\,", data_out[count-2])
+                anti_clockwise = re.search("anti-clockwise", data_out[count-2])
+                clockwise = re.search(r"\sclockwise\s", data_out[count-2])
+                cacw = 0
+                if anti_clockwise:
+                    cacw = 2
+                elif circle or circle2:
+                    cacw = 3
+                elif clockwise:
+                    cacw = 1
+
+                if cacw > 0:         
+                    radius = data_out[count-1]
+                    # deal with radius in meters
+                    if float(radius) > 100:
+                        radius = float(radius) / 1000
+                    if cacw < 3:
+                        start_lon = re.search(r"([\d]{6,7})(E|W)", data_out[count-4])
+                        start_lat = re.search(r"([\d]{6,7})(N|S)", data_out[count-6])
+                        centre_lat = re.search(r"([\d]{6,7})(N|S)", data_out[count+4])
+                        centre_lon = re.search(r"([\d]{6,7})(E|W)", data_out[count+6])
+                        end_lat = re.search(r"([\d]{6,7})(N|S)", data_out[count+9])
+                        end_lon = re.search(r"([\d]{6,7})(E|W)", data_out[count+11])
+                    elif cacw == 3:
+                        centre_lat = re.search(r"([\d]{6,7})(N|S)", data_out[count+4])
+                        centre_lon = re.search(r"([\d]{6,7})(E|W)", data_out[count+6])
+
+                    if (cacw < 3) and (centre_lat == None):
+                        centre_lat = re.search(r"([\d]{6,7})(N|S)", data_out[count+2])
+                        centre_lon = re.search(r"([\d]{6,7})(E|W)", data_out[count+4])
+                        end_lat = re.search(r"([\d]{6,7})(N|S)", data_out[count+7])
+                        end_lon = re.search(r"([\d]{6,7})(E|W)", data_out[count+9])
+                    
+                    if (cacw < 3) and (end_lat == None):
+                        end_lat = re.search(r"([\d]{6,7})(N|S)", data_out[count+11])
+                        end_lon = re.search(r"([\d]{6,7})(E|W)", data_out[count+13])
+
+                    # convert from dms to dd
+                    if cacw == 3:
+                        mid_dd = self.dms2dd(centre_lat.group(1), centre_lon.group(1), centre_lat.group(2), centre_lon.group(2))
+                        start_dd = mid_dd
+                        end_dd = mid_dd
+                    else:
+                        start_dd = self.dms2dd(start_lat.group(1), start_lon.group(1), start_lat.group(2), start_lon.group(2))
+                        mid_dd = self.dms2dd(centre_lat.group(1), centre_lon.group(1), centre_lat.group(2), centre_lon.group(2))
+                        end_dd = self.dms2dd(end_lat.group(1), end_lon.group(1), end_lat.group(2), end_lon.group(2))
+                    if danger_area:
+                        print(danger_title)
+                    else:
+                        print(print_title)
+                    arc_out = self.generate_semicircle(float(mid_dd[0]), float(mid_dd[1]), float(start_dd[0]), float(start_dd[1]), float(end_dd[0]), float(end_dd[1]), cacw, float(radius))
+                    for coord in arc_out:
+                        space.append(coord)
+                    
+                    # store the last arc title to compare against
+                    last_arc_title = str(print_title)
+
+            if coords:
+                loop_coord = False
+                # get the coordinate
+                print_coord = re.findall(r"([\d]{6,7})(N|S|E|W)", str(data_out[count-1]))
+                if print_coord: 
+                    space.append(print_coord[0])
+
+            if (ad217 == 1) and (loop_coord):
+                # for looping through AD2.17 aerodrome
+                first_callsign = True
+                callsign_out = print_title
+            elif (ad217 == 2) and (loop_coord):
+                # for danger areas
+                first_callsign = True
+                callsign_out = danger_title
+
+            if (loop_coord) and (space != []) and (first_callsign):
+                def coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit, lower_limit, airspace_class):
+                    df_out = {
+                        'name': last_df_in_title,
+                        'callsign': callsign_out,
+                        'frequency': str(frequency),
+                        'boundary': str(output),
+                        'upper_fl': str(upper_limit),
+                        'lower_fl': str(lower_limit),
+                        'class': str(airspace_class)
+                        }
+                    return df_out
+
+                output = self.getBoundary(space)
+                if airspace:
+                    # for FIRs do this
+                    if last_airspace.group(1) == "FIR":
+                        df_fir_out = coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit_out, lower_limit_out, airspace_class_out)
+                        df_fir = df_fir.append(df_fir_out, ignore_index=True)
+                    # for UIRs do this - same extent as FIR
+                    #if last_airspace.group(1) == "UIR":
+                    #    df_uir_out = {'name': last_df_in_title,'callsign': callsign_out,'frequency': str(frequency), 'boundary': str(output), 'upper_fl': '000', 'lower_fl': '000'}
+                    #    df_uir = df_uir.append(df_uir_out, ignore_index=True)
+                    # for CTAs do this
+                    if last_airspace.group(1) == "CTA":
+                        df_cta_out = coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit_out, lower_limit_out, airspace_class_out)
+                        df_cta = df_cta.append(df_cta_out, ignore_index=True)
+                    if last_airspace.group(1) == "TMA":
+                        df_tma_out = coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit_out, lower_limit_out, airspace_class_out)
+                        df_tma = df_tma.append(df_tma_out, ignore_index=True)
+                    if last_airspace.group(1) == "CTR":
+                        df_ctr_out = coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit_out, lower_limit_out, airspace_class_out)
+                        df_ctr = df_ctr.append(df_ctr_out, ignore_index=True)
+                    if (last_airspace.group(1) == "ATZ") or (last_airspace.group(1) == "RMZ") or (last_airspace.group(1) == "CTR"):
+                        df_atz_out = coord_to_table(last_df_in_title, callsign_out, frequency, output, upper_limit_out, lower_limit_out, airspace_class_out)
+                        df_atz = df_atz.append(df_atz_out, ignore_index=True)
+                    if danger:
+                        df_danger_out = coord_to_table(last_df_in_title, False, False, output, upper_limit_out, lower_limit_out, False)
+                        df_danger = df_danger.append(df_danger_out, ignore_index=True)
+                    space = []
+                    loop_coord = True
+                    first_callsign = False
+                    first_freq = False
+
+            if airspace:
+                if danger:
+                    last_df_in_title = danger_title
+                else:
+                    last_df_in_title = print_title
+                last_airspace = airspace
+            row += 1
+            count += 1
+        df_uir = df_fir
+        if (ad217 == 1):
+            return [df_fir, df_uir, df_cta, df_tma, df_ctr, df_atz_out, df_danger]
+        else:
+            return [df_fir, df_uir, df_cta, df_tma, df_ctr, df_atz, df_danger]
 
     def parse_ad01_data(self):
         """Parse the data from AD-0.1"""
@@ -253,6 +499,28 @@ class Webscrape:
                     print(Fore.RED + "Aerodrome " + aeroIcao + " does not exist" + Style.RESET_ALL)
                 bar()
         return [dfAd01, df_rwy, df_srv]
+    
+    def parse_ad0217_data(self, dfAd01): # re-write of this section has been completed
+        """This will parse airspace data from AD 2.17 for each aerodrome"""
+        print("Parsing "+ self.country +"-AD-2.17 Data (AIR TRAFFIC SERVICES AIRSPACE)...")
+
+        dfColumns = ['name', 'callsign', 'frequency', 'boundary', 'upper_fl', 'lower_fl', 'class']
+        df_atz = pd.DataFrame(columns=dfColumns)
+
+        # Select all aerodromes in the database
+        for index, rowu in dfAd01.iterrows():
+            aeroIcao = rowu['icao_designator']
+            # Select all runways in this aerodrome
+            getAerodromes = self.get_table_soup(self.country + "-AD-2."+ aeroIcao +"-en-GB.html")
+            if getAerodromes !=404:
+                print("  Parsing AD-2.17 data for " + aeroIcao)
+                #getData = self.get_table_soup(self.country + "-ENR-2.1-en-GB.html")
+                getData = getAerodromes.find(id=aeroIcao + "-AD-2.17")
+                output = self.airspace_parser(getData, 1)
+                if output[5] != False:
+                    df_atz = df_atz.append(output[5], ignore_index=True)
+                
+        return df_atz
 
     def parse_enr016_data(self, dfAd01):
         """Parse the data from ENR-1.6"""
@@ -295,326 +563,106 @@ class Webscrape:
 
     def parse_enr021_data(self): # re-write of this section has been completed
         """This will parse ENR 2 data from the given AIP"""
-        dfColumns = ['name', 'callsign', 'frequency', 'boundary', 'upper_fl', 'lower_fl']
-        df_fir = pd.DataFrame(columns=dfColumns)
-        df_uir = pd.DataFrame(columns=dfColumns)
-        df_cta = pd.DataFrame(columns=dfColumns)
-        df_tma = pd.DataFrame(columns=dfColumns)
 
         print("Parsing "+ self.country +"-ENR-2.1 Data (FIR, UIR, TMA AND CTA)...")
         getData = self.get_table_soup(self.country + "-ENR-2.1-en-GB.html")
-
-        self.cw_acw_helper(getData, "Enr021")
-
-        searchData = getData.find_all("span")
-        barLength = len(searchData)
-        airspace = False
-        row = 0
-        last_arc_title = False
-        arc_counter = 0
-        space = []
-        loop_coord = False
-        first_callsign = False
-        first_freq = False
-        with alive_bar(barLength) as bar: # Define the progress bar
-            while row < barLength:
-                # find an airspace
-                title = re.search(r"TAIRSPACE;TXT_NAME", str(searchData[row]))
-                coords = re.search(r"(?:TAIRSPACE_VERTEX;GEO_L(?:AT|ONG);)([\d]{4})", str(searchData[row]))
-                callsign = re.search(r"TUNIT;TXT_NAME", str(searchData[row]))
-                freq = re.search(r"TFREQUENCY;VAL_FREQ_TRANS", str(searchData[row]))
-                arc = re.search(r"TAIRSPACE_VERTEX;VAL_RADIUS_ARC", str(searchData[row]))
-
-                if title:
-                    # get the printed title
-                    print_title = re.search(r"\>(.*)\<", str(searchData[row-1]))
-                    if print_title:
-                        # search for FIR / UIR* / CTA / TMA in the printed title *removed as same extent of FIR in UK
-                        airspace = re.search(r"(FIR|CTA|TMA|CTR)", str(searchData[row-1]))
-                        if airspace:
-                            df_in_title = str(print_title.group(1))
-                        loop_coord = True
- 
-                if (callsign) and (first_callsign is False):
-                    # get the first (and only the first) printed callsign
-                    print_callsign = re.search(r"\>(.*)\<", str(searchData[row-1]))
-                    if print_callsign:
-                        callsign_out = print_callsign.group(1)
-                        first_callsign = True
-                
-                if (freq) and (first_freq is False):
-                    # get the first (and only the first) printed callsign
-                    print_frequency = re.search(r"\>(1[1-3]{1}[\d]{1}\.[\d]{3})\<", str(searchData[row-1]))
-                    if print_frequency:
-                        frequency = print_frequency.group(1)
-                        first_freq = True
-
-                if arc: # what to do if an arc is found
-                    # check to see if this a series, if so then increment the counter
-                    if df_in_title == str(last_arc_title):
-                        arc_counter += 0
-                    else:
-                        arc_counter == 0
-                    
-                    # is this going to be a clockwise or anti-clockwise arc?
-                    complex_areas = pd.read_csv(f'{work_dir}\\DataFrames\\Enr021-CW-ACW-Helper.csv', index_col=0)
-                    cacw = complex_areas.loc[(complex_areas["area"].str.match(df_in_title)) & (complex_areas["number"] == arc_counter)]
-                    cacw = cacw['direction'].to_string(index=False)
-                    if cacw == "clockwise":
-                        cacw = 1
-                    elif cacw == "anti-clockwise":
-                        cacw = 2
-
-                    # work back through the rows to identify the start lat/lon
-                    count_back = 2 # start countback from 2
-                    start_lon = None
-                    start_lat = None
-                    while start_lon == None:
-                        start_lon = re.search(r"\>([\d]{6,7})(E|W)\<", str(searchData[row-count_back]))
-                        count_back += 1
-                    while start_lat == None:
-                        start_lat = re.search(r"\>([\d]{6,7})(N|S)\<", str(searchData[row-count_back]))
-                        count_back += 1
-                    
-                    # work forward to find the centre point and end lat/lon
-                    count_forward = 1
-                    end_lat = None
-                    end_lon = None
-                    mid_lat = None
-                    mid_lon = None
-                    while mid_lat == None:
-                        mid_lat = re.search(r"\>([\d]{6,7})(N|S)\<", str(searchData[row+count_forward]))
-                        count_forward += 1
-                    while mid_lon == None:
-                        mid_lon = re.search(r"\>([\d]{6,7})(E|W)\<", str(searchData[row+count_forward]))
-                        count_forward += 1
-                    while end_lat == None:
-                        end_lat = re.search(r"\>([\d]{6,7})(N|S)\<", str(searchData[row+count_forward]))
-                        count_forward += 1
-                    while end_lon == None:
-                        end_lon = re.search(r"\>([\d]{6,7})(E|W)\<", str(searchData[row+count_forward]))
-                        count_forward += 1
-                    
-                    # convert from dms to dd
-                    start_dd = self.dms2dd(start_lat[1], start_lon[1], start_lat[2], start_lon[2])
-                    mid_dd = self.dms2dd(mid_lat[1], mid_lon[1], mid_lat[2], mid_lon[2])
-                    end_dd = self.dms2dd(end_lat[1], end_lon[1], end_lat[2], end_lon[2])
-
-                    arc_out = self.generate_semicircle(float(mid_dd[0]), float(mid_dd[1]), float(start_dd[0]), float(start_dd[1]), float(end_dd[0]), float(end_dd[1]), cacw)
-                    for coord in arc_out:
-                        space.append(coord)
-                    
-                    # store the last arc title to compare against
-                    last_arc_title = str(print_title.group(1))
-
-                if coords:
-                    loop_coord = False
-                    # get the coordinate
-                    print_coord = re.findall(r"\>([\d]{6,7})(N|S|E|W)\<", str(searchData[row-1]))
-                    if print_coord: 
-                        space.append(print_coord[0])
- 
-                if (loop_coord) and (space != []):
-                    def coord_to_table(last_df_in_title, callsign_out, frequency, output):
-                        df_out = {
-                            'name': last_df_in_title,
-                            'callsign': callsign_out,
-                            'frequency': str(frequency),
-                            'boundary': str(output),
-                            'upper_fl': '000',
-                            'lower_fl': '000'
-                            }
-                        return df_out
-                    
-                    output = self.getBoundary(space, last_df_in_title)
-                    if airspace:
-                        # for FIRs do this
-                        if last_airspace.group(1) == "FIR":
-                            df_fir_out = coord_to_table(last_df_in_title, callsign_out, frequency, output)
-                            df_fir = df_fir.append(df_fir_out, ignore_index=True)
-                        # for UIRs do this - same extent as FIR
-                        #if last_airspace.group(1) == "UIR":
-                        #    df_uir_out = {'name': last_df_in_title,'callsign': callsign_out,'frequency': str(frequency), 'boundary': str(output), 'upper_fl': '000', 'lower_fl': '000'}
-                        #    df_uir = df_uir.append(df_uir_out, ignore_index=True)
-                        # for CTAs do this
-                        if last_airspace.group(1) == "CTA":
-                            df_cta_out = coord_to_table(last_df_in_title, callsign_out, frequency, output)
-                            df_cta = df_cta.append(df_cta_out, ignore_index=True)
-                        if last_airspace.group(1) == "TMA":
-                            df_tma_out = coord_to_table(last_df_in_title, callsign_out, frequency, output)
-                            df_tma = df_tma.append(df_tma_out, ignore_index=True)
-                        space = []
-                        loop_coord = True
-                        first_callsign = False
-                        first_freq = False
-
-                if airspace:
-                    last_df_in_title = df_in_title
-                    last_airspace = airspace
-                bar()
-                row += 1
-        df_uir = df_fir # UIR is same extent as FIR
-        return [df_fir, df_uir, df_cta, df_tma]
+        output = self.airspace_parser(getData)
+        
+        return [output[0], output[1], output[2], output[3]]
 
     def parse_enr022_data(self): # re-write of this section has been completed
         """This will parse ENR 2.2 data from the given AIP"""
-        dfColumns = ['name', 'callsign', 'frequency', 'boundary', 'upper_fl', 'lower_fl']
-        df_atz = pd.DataFrame(columns=dfColumns)
-
+        
         print("Parsing "+ self.country +"-ENR-2.2 Data (OTHER REGULATED AIRSPACE)...")
         getData = self.get_table_soup(self.country + "-ENR-2.2-en-GB.html")
+        output = self.airspace_parser(getData)
 
-        self.cw_acw_helper(getData, "Enr022")
-        self.circle_helper(getData, "Enr022")
+        return output[5]
 
-        searchData = getData.find_all("span")
-        barLength = len(searchData)
-        airspace = False
-        row = 0
-        last_arc_title = False
-        arc_counter = 0
-        space = []
-        loop_coord = False
-        first_callsign = False
-        first_freq = False
-        with alive_bar(barLength) as bar: # Define the progress bar
-            while row < barLength:
-                # find an airspace
-                title = re.search(r"TAIRSPACE;TXT_NAME", str(searchData[row]))
-                coords = re.search(r"(?:TAIRSPACE_VERTEX;GEO_L(?:AT|ONG);)([\d]{4})", str(searchData[row]))
-                callsign = re.search(r"TUNIT;TXT_NAME", str(searchData[row]))
-                freq = re.search(r"TFREQUENCY;VAL_FREQ_TRANS", str(searchData[row]))
-                arc = re.search(r"TAIRSPACE_VERTEX;VAL_RADIUS_ARC", str(searchData[row]))
+    def acc_uac_control_sectors(self):
+        xlsx_file = f"{work_dir}\\ACC_UAC_Sectors.csv"
+        part_number = False
 
-                if title:
-                    # get the printed title
-                    print_title = re.search(r"\>(.*)\<", str(searchData[row-1]))
-                    if print_title:
-                        # search for FIR / UIR* / CTA / TMA in the printed title *removed as same extent of FIR in UK
-                        airspace = re.search(r"(ATZ)", str(searchData[row-1]))
-                        if airspace:
-                            df_in_title = str(print_title.group(1))
-                        loop_coord = True
- 
-                if (callsign) and (first_callsign is False):
-                    # get the first (and only the first) printed callsign
-                    print_callsign = re.search(r"\>(.*)\<", str(searchData[row-1]))
-                    if print_callsign:
-                        callsign_out = print_callsign.group(1)
-                        first_callsign = True
-                
-                if (freq) and (first_freq is False):
-                    # get the first (and only the first) printed callsign
-                    print_frequency = re.search(r"\>(1[1-3]{1}[\d]{1}\.[\d]{3})\<", str(searchData[row-1]))
-                    if print_frequency:
-                        frequency = print_frequency.group(1)
-                        first_freq = True
+        dfColumns = ['name', 'boundary']
+        df = pd.DataFrame(columns=dfColumns)
 
-                if arc: # what to do if an arc is found
-                    # check to see if this a series, if so then increment the counter
-                    if df_in_title == str(last_arc_title):
-                        arc_counter += 0
+        def wrangler(data, sector, df):
+            """sorts out all of the random coords into something useful"""
+            latlon = ""
+            if data != "":
+                pair = re.findall(r"([0-9]{6})([N|S])[\,\s\.\n]?([0-9]{7})([E|W])", data)
+                for p in pair:
+                    lat = p[0]
+                    lon = p[2]
+                    ns = p[1]
+                    ew = p[3]
+                    q = self.sct_location_builder(lat, lon, ns, ew)
+                    latlon = f"{latlon}/{q}"
+                latlon = latlon.lstrip("/")
+                dfOut = {'name': str(sector), 'boundary': str(latlon)}
+                print(dfOut)
+                return dfOut
+
+        coord_full = ""
+        area = False
+        sector = False
+        with open(xlsx_file) as read_file:
+            for line in read_file:
+                split_line = line.split(',')
+                area_name = re.match(r"[A-Z]{3,}\sAC", line) # area name
+                sector_name = re.match(r"[A-Z]{3,}", split_line[0]) # sector name
+                sector_number = re.match(r"[0-9]{1,2}\,\,", line) # sector name
+                if len(split_line) > 3:
+                    part_number = re.match(r"[0-9]{1}", split_line[2]) # get sector part number
+                    upper_fl = re.match(r"[FL\s]{2,4}[\d\s]{1,5}", split_line[3]) # get upper flight level
+                    if not upper_fl:
+                        upper_fl = re.match(r"[FL\s]{2,4}[\d\s]{2,5}", split_line[0]) # get upper flight level
+                # find area name
+                if area_name:
+                    dfOut = wrangler(coord_full, area, df)
+                    df = df.append(dfOut, ignore_index=True)
+                    coord_full = ""
+                    area = split_line[0]
+                elif sector_name or sector_number:
+                    # sector name or number
+                    if part_number:
+                        dfOut = wrangler(coord_full, sector, df)
+                        df = df.append(dfOut, ignore_index=True)
+                        coord_full = ""
+                        sector = f"{area} {split_line[0]} {part_number[0]}"
                     else:
-                        arc_counter == 0
+                        sector = f"{area} {split_line[0]}"
                     
-                    # is this going to be a clockwise or anti-clockwise arc?
-                    complex_areas = pd.read_csv(f'{work_dir}\\DataFrames\\Enr022-CW-ACW-Helper.csv', index_col=0)
-                    cacw = complex_areas.loc[(complex_areas["area"].str.match(df_in_title)) & (complex_areas["number"] == arc_counter)]
-                    cacw = cacw['direction'].to_string(index=False)
-                    if cacw == "clockwise":
-                        cacw = 1
-                    elif cacw == "anti-clockwise":
-                        cacw = 2
-                    
-                    # is this a circle?
-                    complex_areas = pd.read_csv(f'{work_dir}\\DataFrames\\Enr022-Circle-Helper.csv', index_col=0)
-                    cacw = complex_areas.loc[(complex_areas["area"].str.match(df_in_title))]
-                    if cacw is not None:
-                        cacw = 3
+                    if upper_fl:
+                        print_txt = split_line[3].replace(" ", "")
+                        #print(f"\t\t{print_txt}")
+                elif upper_fl:
+                    print_txt = upper_fl[0].replace(" ", "")
+                    #print(f"\t\t{print_txt}")
+                
+                for splt in split_line:
+                    clear_spaces = splt.replace(" ", "").replace("O", "0").replace("l", "1").replace("I", "1")
+                    with open("out.txt", "a") as file:
+                        file.write(clear_spaces)
+                    nav = re.findall(r"[0-9OlIi]{5,8}[\-]?[N|S|E|W]", clear_spaces)
+                    for coord in nav:
+                        ns_check = re.match(r"[0-9]{6}[N|S]", coord)
+                        we_check = re.match(r"[0-9]{7}[W|E]", coord)
+                        if (not ns_check) and (not we_check):
+                            ns_check_s2 = re.search(r"([0-9]{5})([N|S])", coord)
+                            ew_check_s2 = re.search(r"([0-9]{6})([W|E])", coord)
+                            ew_check_s3 = re.search(r"([0-9]{5})([W|E])", coord)
+                            if ns_check_s2:
+                                coord = f"{ns_check_s2[0]}0{ns_check_s2[1]}"
+                            elif ew_check_s2:
+                                coord = f"{ew_check_s2[0]}0{ew_check_s2[1]}"
+                            elif ew_check_s3:
+                                coord = f"{ew_check_s3[0]}00{ew_check_s3[1]}"
+                            else:
+                                coord = input(f"Error spotted with {coord}, please enter correct value: ")
+                        coord_full = f"{coord_full} {coord}"
 
-                    # work back through the rows to identify the start lat/lon
-                    count_back = 2 # start countback from 2
-                    start_lon = None
-                    start_lat = None
-                    while start_lon == None:
-                        start_lon = re.search(r"\>([\d]{6,7})(E|W)\<", str(searchData[row-count_back]))
-                        count_back += 1
-                    while start_lat == None:
-                        start_lat = re.search(r"\>([\d]{6,7})(N|S)\<", str(searchData[row-count_back]))
-                        count_back += 1
-                    
-                    # work forward to find the centre point and end lat/lon
-                    count_forward = 1
-                    end_lat = None
-                    end_lon = None
-                    mid_lat = None
-                    mid_lon = None
-                    while mid_lat == None:
-                        mid_lat = re.search(r"\>([\d]{6,7})(N|S)\<", str(searchData[row+count_forward]))
-                        count_forward += 1
-                    while mid_lon == None:
-                        mid_lon = re.search(r"\>([\d]{6,7})(E|W)\<", str(searchData[row+count_forward]))
-                        count_forward += 1
-                    while end_lat == None:
-                        end_lat = re.search(r"\>([\d]{6,7})(N|S)\<", str(searchData[row+count_forward]))
-                        count_forward += 1
-                    while end_lon == None:
-                        end_lon = re.search(r"\>([\d]{6,7})(E|W)\<", str(searchData[row+count_forward]))
-                        count_forward += 1
-                    
-                    # convert from dms to dd
-                    start_dd = self.dms2dd(start_lat[1], start_lon[1], start_lat[2], start_lon[2])
-                    if (cacw == 2) or (cacw == 2):
-                        mid_dd = self.dms2dd(mid_lat[1], mid_lon[1], mid_lat[2], mid_lon[2])
-                        end_dd = self.dms2dd(end_lat[1], end_lon[1], end_lat[2], end_lon[2])
-                    elif cacw == 3:
-                        mid_dd = start_dd
-                        end_dd = start_dd
-
-                    arc_out = self.generate_semicircle(float(mid_dd[0]), float(mid_dd[1]), float(start_dd[0]), float(start_dd[1]), float(end_dd[0]), float(end_dd[1]), cacw)
-                    for coord in arc_out:
-                        space.append(coord)
-                    
-                    # store the last arc title to compare against
-                    last_arc_title = str(print_title.group(1))
-
-                if coords:
-                    loop_coord = False
-                    # get the coordinate
-                    print_coord = re.findall(r"\>([\d]{6,7})(N|S|E|W)\<", str(searchData[row-1]))
-                    if print_coord: 
-                        space.append(print_coord[0])
- 
-                if (loop_coord) and (space != []) and (first_callsign is True) and (first_freq is True):
-                    def coord_to_table(last_df_in_title, callsign_out, frequency, output):
-                        df_out = {
-                            'name': last_df_in_title,
-                            'callsign': callsign_out,
-                            'frequency': str(frequency),
-                            'boundary': str(output),
-                            'upper_fl': '000',
-                            'lower_fl': '000'
-                            }
-                        return df_out
-                    
-                    output = self.getBoundary(space, last_df_in_title)
-                    if airspace:
-                        # for ATZs do this
-                        if last_airspace.group(1) == "ATZ":
-                            df_atz_out = coord_to_table(last_df_in_title, callsign_out, frequency, output)
-                            df_atz = df_atz.append(df_atz_out, ignore_index=True)
-                        space = []
-                        loop_coord = True
-                        first_callsign = False
-                        first_freq = False
-
-                if airspace:
-                    last_df_in_title = df_in_title
-                    last_airspace = airspace
-                bar()
-                row += 1
-        return df_atz
-
+        return df
 
     def parse_enr03_data(self, section):
         dfColumns = ['name', 'route']
@@ -686,29 +734,13 @@ class Webscrape:
         return df
 
     def parse_enr051_data(self):
-        dfColumns = ['name', 'boundary', 'floor', 'ceiling']
-        dfEnr05 = pd.DataFrame(columns=dfColumns)
+        """This will parse ENR 5.1 data from the given AIP"""
+
         print("Parsing "+ self.country +"-ENR-5.1 data for PROHIBITED, RESTRICTED AND DANGER AREAS...")
-        getENR5 = self.get_table_soup(self.country + "-ENR-5.1-en-GB.html")
-        self.cw_acw_helper(getENR5, "Enr051")
-        listTables = getENR5.find_all("tr")
-        barLength = len(listTables)
-        with alive_bar(barLength) as bar: # Define the progress bar
-            for row in listTables:
-                getId = self.search("((EG)\s(D|P|R)[\d]{3}[A-Z]*)", "TAIRSPACE;CODE_ID", str(row))
-                getName = self.search("([A-Z\s]*)", "TAIRSPACE;TXT_NAME", str(row))
-                getLoc = self.search("([\d]{6,7})([N|E|S|W]{1})", "TAIRSPACE_VERTEX;GEO_L", str(row))
-                getUpper = self.search("([\d]{3,5})", "TAIRSPACE_VOLUME;VAL_DIST_VER_UPPER", str(row))
-                #getLower = self.search("([\d]{3,5})|(SFC)", "TAIRSPACE_VOLUME;VAL_DIST_VER_LOWER", str(row))
+        get_data = self.get_table_soup(self.country + "-ENR-5.1-en-GB.html")
+        output = self.airspace_parser(get_data, 2)
 
-                if getId:
-                    for upper in getUpper:
-                        up = upper
-                    dfOut = {'name': str(getId[0][0]) + ' ' + str(getName[2]), 'boundary': self.getBoundary(getLoc, str(getId[0][0])), 'floor': 0, 'ceiling': str(up)}
-                    dfEnr05 = dfEnr05.append(dfOut, ignore_index=True)
-
-                bar()
-        return dfEnr05
+        return output[6]
 
     def test(self): # testing code - remove for live
         test = self.parse_enr051_data()
@@ -725,19 +757,22 @@ class Webscrape:
         full_dir = f"{work_dir}\\DataFrames\\"
         Ad01 = self.parse_ad01_data() # returns single dataframe
         Ad02 = self.parse_ad02_data(Ad01) # returns dfAd01, df_rwy, df_srv
+        Ad0217 = self.parse_ad0217_data(Ad01) # returns single dataframe
         Enr016 = self.parse_enr016_data(Ad01) # returns single dataframe
         Enr021 = self.parse_enr021_data() # returns dfFir, dfUir, dfCta, dfTma
-        Enr022 = self.parse_enr022_data() # returns dfatz
+        Enr022 = self.parse_enr022_data() # returns single dataframe
         Enr031 = self.parse_enr03_data('1') # returns single dataframe
         Enr033 = self.parse_enr03_data('3') # returns single dataframe
         Enr035 = self.parse_enr03_data('5') # returns single dataframe
         Enr041 = self.parse_enr04_data('1') # returns single dataframe
         Enr044 = self.parse_enr04_data('4') # returns single dataframe
         Enr051 = self.parse_enr051_data() # returns single dataframe
+        AccUac = self.acc_uac_control_sectors() # returns single dataframe
 
         Ad01.to_csv(f'{full_dir}Ad01.csv')
         Ad02[1].to_csv(f'{full_dir}Ad02-Runways.csv')
         Ad02[2].to_csv(f'{full_dir}Ad02-Services.csv')
+        Ad0217.to_csv(f'{full_dir}Ad0217-ATS.csv')
         Enr016.to_csv(f'{full_dir}Enr016.csv')
         Enr021[0].to_csv(f'{full_dir}Enr021-FIR.csv')
         Enr021[1].to_csv(f'{full_dir}Enr021-UIR.csv')
@@ -750,6 +785,7 @@ class Webscrape:
         Enr041.to_csv(f'{full_dir}Enr041.csv')
         Enr044.to_csv(f'{full_dir}Enr044.csv')
         Enr051.to_csv(f'{full_dir}Enr051.csv')
+        AccUac.to_csv(f'{full_dir}AccUac.csv')
 
         return [Ad01, Ad02, Enr016, Enr021, Enr022, Enr031, Enr033, Enr035, Enr041, Enr044, Enr051]
 
@@ -839,7 +875,7 @@ class Webscrape:
 
         return [lat_out, lon_out]
 
-    def generate_semicircle(self, center_x, center_y, start_x, start_y, end_x, end_y, direction):
+    def generate_semicircle(self, center_x, center_y, start_x, start_y, end_x, end_y, direction, dst=2.5):
         """Dreate a semicircle. Direction is 1 for clockwise and 2 for anti-clockwise"""
         from geographiclib.geodesic import Geodesic
 
@@ -856,7 +892,7 @@ class Webscrape:
             end_brg_compass = ((360 + end_brg) % 360)
         elif direction == 3: # if direction set to 3, draw a circle
             start_brg = 0
-            start_dst = 2.5 * 1852 # convert nautical miles to meters
+            start_dst = dst * 1852 # convert nautical miles to meters
             end_brg_compass = 359
             direction = 1 # we can set the direction to 1 as the bit of code below can still be used
 
@@ -938,6 +974,8 @@ class Builder:
             scrape.append(pd.read_csv('DataFrames/Enr041.csv', index_col=0))        #12
             scrape.append(pd.read_csv('DataFrames/Enr044.csv', index_col=0))        #13
             scrape.append(pd.read_csv('DataFrames/Enr051.csv', index_col=0))        #14
+            scrape.append(pd.read_csv('Dataframes/Ad0217-ATS.csv', index_col=0)) #15
+            scrape.append(pd.read_csv('DataFrames/AccUac.csv', index_col=0))        #16
             self.scrape = scrape
         else:
             initWebscrape = Webscrape()
@@ -1102,11 +1140,13 @@ class Builder:
         # ARTCC HIGH section TMA
         print("Adding ARTCC HIGH...")
         build_artcc(7, "ARTCC HIGH", "100", "3000")
+        #build_artcc(16, "ARTCC HIGH", "100", "3000")
 
         # ARTCC LOW section CTA
         print("Adding ARTCC LOW...")
         build_artcc(6, "ARTCC LOW", "0", "2000")
         build_artcc(8, "ARTCC LOW", "0", "2000")
+        build_artcc(15, "ARTCC LOW", "0", "2000")
 
         # SID section
 
@@ -1270,5 +1310,7 @@ elif args.build:
     new.run()
 else:
     new = Webscrape()
-    new.parse_enr021_data()
-    new.parse_enr022_data()
+    full_dir = f"{work_dir}\\DataFrames\\"
+    dfAd01 = new.parse_ad01_data()
+    AccUac = new.parse_enr051_data() # returns single dataframe
+    print(AccUac)
