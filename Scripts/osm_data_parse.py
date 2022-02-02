@@ -5,7 +5,7 @@ import shutil
 
 from time import sleep
 
-work_dir = os.path.dirname(__file__)
+work_dir = os.getcwd()
 
 def dd2dms(latitude, longitude):
 
