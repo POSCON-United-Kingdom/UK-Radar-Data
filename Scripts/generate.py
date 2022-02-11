@@ -445,26 +445,42 @@ class Webscrape:
 
                     # Find runway locations
                     aerodromeRunways = self.search("([\d]{2}[L|C|R]?)", "TRWY_DIRECTION;TXT_DESIG", str(aerodromeAd0212))
-                    aerodromeRunwaysLat = self.search("([\d]{6}\.[\d]{2}[N|S]{1})", "TRWY_CLINE_POINT;GEO_LAT", str(aerodromeAd0212))
-                    aerodromeRunwaysLong = self.search("([\d]{7}\.[\d]{2}[E|W]{1})", "TRWY_CLINE_POINT;GEO_LONG", str(aerodromeAd0212))
-                    aerodromeRunwaysElev = self.search("([\d]{3}\.[\d]{1})", "TRWY_CLINE_POINT;VAL_ELEV", str(aerodromeAd0212))
+                    #print(aerodromeRunways)
+                    aerodromeRunwaysLat = self.search("([\d]{6}[\.]?[\d]{0,2}[N|S]{1})", "TRWY_CLINE_POINT;GEO_LAT", str(aerodromeAd0212))
+                    #print(aerodromeRunwaysLat)
+                    aerodromeRunwaysLong = self.search("([\d]{7}[\.]?[\d]{0,2}[E|W]{1})", "TRWY_CLINE_POINT;GEO_LONG", str(aerodromeAd0212))
+                    #print(aerodromeRunwaysLong)
+                    aerodromeRunwaysElev = self.search("([\d]{1,3}\.[\d]{1})", "TRWY_CLINE_POINT;VAL_ELEV", str(aerodromeAd0212))
+                    #print(aerodromeRunwaysElev)
                     aerodromeRunwaysBearing = self.search("([\d]{3}\.[\d]{2}.)", "TRWY_DIRECTION;VAL_TRUE_BRG", str(aerodromeAd0212))
+                    #print(aerodromeRunwaysBearing)
                     aerodromeRunwaysLen = self.search("([\d]{3,4})", "TRWY;VAL_LEN", str(aerodromeAd0212))
+                    #print(aerodromeRunwaysLen)
 
                     for rwy, lat, lon, elev, brg, rwyLen in zip(aerodromeRunways, aerodromeRunwaysLat, aerodromeRunwaysLong, aerodromeRunwaysElev, aerodromeRunwaysBearing, aerodromeRunwaysLen):
                         # Add runway to the aerodromeDB
-                        latSplit = re.search(r"([\d]{6}\.[\d]{2})([N|S]{1})", str(lat))
-                        lonSplit = re.search(r"([\d]{7}\.[\d]{2})([E|W]{1})", str(lon))
+                        latSplit = re.search(r"([\d]{6})(\.[\d]{2})?([N|S]{1})", str(lat))
+                        lonSplit = re.search(r"([\d]{7})(\.[\d]{2})?([E|W]{1})", str(lon))
+
+                        if latSplit.group(2) is None:
+                            printer_la = latSplit.group(1)
+                        else:
+                            printer_la = latSplit.group(1) + latSplit.group(2)
+                        
+                        if lonSplit.group(2) is None:
+                            printer_lo = lonSplit.group(1)
+                        else:
+                            printer_lo = lonSplit.group(1) + lonSplit.group(2)
 
                         loc = self.sct_location_builder(
-                            latSplit.group(1),
-                            lonSplit.group(1),
-                            latSplit.group(2),
-                            lonSplit.group(2)
+                            printer_la,
+                            printer_lo,
+                            latSplit.group(3),
+                            lonSplit.group(3)
                             )
 
                         df_rwy_out = {'icao_designator': str(aeroIcao),'runway': str(rwy),'location': str(loc),'elevation': str(elev),'bearing': str(brg.rstrip('°')),'length': str(rwyLen)}
-                        # print(df_rwy_out)
+                        #print(df_rwy_out)
                         df_rwy = df_rwy.append(df_rwy_out, ignore_index=True)
 
                     # Find air traffic services
@@ -1158,6 +1174,14 @@ class Builder:
 
         def build_artcc(idx, section, range_lo, range_hi):
             with open(sct_file, 'a') as write_sct_file:
+                line_colour = {
+                    "4": "Blue",
+                    "16": "Silver",
+                    "7": "Grey",
+                    "6": "Navy",
+                    "8": "Black",
+                    "15": "Olive"
+                }
                 write_sct_file.write(f'[{section}]\nRANGE {range_lo} {range_hi}\n')
                 df = self.scrape[idx]
                 for index, row in df.iterrows():
@@ -1166,7 +1190,7 @@ class Builder:
                     n = 0
                     while n < len(draw_line):
                         if (n + 1) < len(draw_line):
-                            write_sct_file.write(f"{row['name']}\t{draw_line[n]}\t{draw_line[n+1]}\n")
+                            write_sct_file.write(f"{row['name']}\t{draw_line[n]}\t{draw_line[n+1]} {line_colour[str(idx)]}\n")
                         n += 1
                 write_sct_file.write('\n')
 
@@ -1236,18 +1260,18 @@ class Builder:
 
         # ARTCC section FIR
         print("Adding ARTCC...")
-        build_artcc(4, "ARTCC", "100", "5000")
+        build_artcc(4, "ARTCC", "0", "20000") # FIR
 
         # ARTCC HIGH section TMA
         print("Adding ARTCC HIGH...")
-        build_artcc(7, "ARTCC HIGH", "100", "3000")
-        #build_artcc(16, "ARTCC HIGH", "100", "3000")
+        build_artcc(7, "ARTCC HIGH", "100", "1000") # TMA
+        #build_artcc(16, "ARTCC HIGH", "500", "3000") # ACC/UAC
 
         # ARTCC LOW section CTA
         print("Adding ARTCC LOW...")
-        build_artcc(6, "ARTCC LOW", "0", "2000")
-        build_artcc(8, "ARTCC LOW", "0", "2000")
-        build_artcc(15, "ARTCC LOW", "0", "2000")
+        build_artcc(6, "ARTCC LOW", "0", "500") # CTA
+        build_artcc(8, "ARTCC LOW", "0", "200") # ATZ
+        build_artcc(15, "ARTCC LOW", "0", "150") # ATS
 
         # SID section
 
@@ -1294,12 +1318,42 @@ class Builder:
         # GEO section
         print("Adding GEO...")
         with open(sct_file, 'a') as write_sct_file:
-            write_sct_file.write('[GEO]\nRANGE 0 6000\n')
+            write_sct_file.write('[GEO]\nRANGE 0 20000\n')
         # UK Geographic Boundary
         sct_writer('DataFrames/UK_NOAA_GEO.txt')
         # Runway Center Lines
+        major_airports = [
+            "EGPD",
+            "EGAA",
+            "EGAC",
+            "EGKB",
+            "EGBB",
+            "EGHH",
+            "EGDD",
+            "EGSC",
+            "EGFF",
+            "EGTC",
+            "EGNX",
+            "EGPH",
+            "EGLF",
+            "EGPE",
+            "EGNM",
+            "EGGP",
+            "EGLC",
+            "EGKK",
+            "EGLL",
+            "EGGW",
+            "EGSS",
+            "EGCC",
+            "EGNT",
+            "EGHQ",
+            "EGSH",
+            "EGHI",
+            "EGPB",
+            "EGNV"
+        ]
         with open(sct_file, 'a') as write_sct_file:
-            write_sct_file.write(f'; Runway Extended Center Lines\nRANGE 10 100\n')
+            write_sct_file.write(f'; Runway Extended Center Lines\nRANGE 5 100\n')
             file_in = 'Dataframes/Ad02-Runways.csv'
             df_centerline = pd.read_csv(file_in, index_col=0)
 
@@ -1307,14 +1361,17 @@ class Builder:
                 write_sct_file.write(f"; Extended Center Line for {row['icao_designator']} Rwy {row['runway']}\n")
                 location = row['location']
                 bearing = row['bearing']
-                start = extended_centerline(location, bearing)
+                if row['icao_designator'] in major_airports:
+                    start = extended_centerline(location, bearing)
+                else:
+                    start = extended_centerline(location, bearing, 2)
                 write_sct_file.write(f"{row['icao_designator']}\t{start[0]}\t{location}\tWhite\n")
                 for tick in start[1]:
                     write_sct_file.write(f"{row['icao_designator']}\t{tick}\tWhite\n")
                 write_sct_file.write('\n')
         # ENR-5.1 DANGER / RESTRICTED areas
         with open(sct_file, 'a') as write_sct_file:
-            write_sct_file.write(f';ENR-5.1\nRANGE 0 1500\n')
+            write_sct_file.write(f';ENR-5.1\nRANGE 0 500\n')
             df = self.scrape[14]
             for index, row in df.iterrows():
                 boundary = row['boundary']
@@ -1368,7 +1425,7 @@ class Builder:
             One center can be defined by two parameters: latitude and longitude.
             There can be maximum 4 visibility centers defined (that is altogether 8 optional elements in the line)
         """
-        print("Adding positions...")
+        """print("Adding positions...")
         with open(sct_file, 'a') as write_sct_file:
             write_sct_file.write('\n\n[POSITIONS]\n')
             list_positions = ["APPROACH", "GROUND", "DELIVERY", "TOWER", "DIRECTOR", "RADIO", "RADAR"] # don't include INFORMATION as this is a non-controlled automatic position
@@ -1399,7 +1456,7 @@ class Builder:
                         callsign = f"{split_icao[2]}{split_icao[3]}{short_pos}{num}"
                         write_sct_file.write(f"{row['icao_designator']} {row['name']} {pos}:{callsign}:{s_row['frequency']}:{callsign}:{num}:{row['icao_designator']}:{short_pos}:0401:7617\n")
                         num += 1
-            write_sct_file.write('\n')
+            write_sct_file.write('\n')"""
 
 # Build command line argument parser
 cmdParse = argparse.ArgumentParser(description="Application to collect data from an AIRAC source and build that into sct files for use on POSCON")
@@ -1429,5 +1486,6 @@ else:
     print(new.url())
 
     new = Webscrape()
-    acc = new.acc_uac_control_sectors()
-    print(acc)
+    ad01 = new.parse_ad01_data()
+    ad02 = new.parse_ad02_data(ad01)
+    print(ad02)
